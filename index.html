@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GitQuest — Learn Git by Playing</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══════════════ SCREEN: WELCOME ═══════════════ -->
+  <div id="screen-welcome" class="screen active">
+    <div class="stars"></div>
+    <div class="welcome-content">
+      <div class="logo-area">
+        <div class="logo-icon">⎇</div>
+        <h1 class="logo-text">Git<span class="accent">Quest</span></h1>
+        <p class="logo-tagline">Master Git. One commit at a time.</p>
+      </div>
+      <div class="welcome-features">
+        <div class="feature-chip">🎮 Interactive Challenges</div>
+        <div class="feature-chip">🌲 Visual Git Trees</div>
+        <div class="feature-chip">💻 IDE Simulations</div>
+        <div class="feature-chip">🏆 Achievements</div>
+      </div>
+      <div class="welcome-actions">
+        <button class="btn btn-primary btn-lg" onclick="App.showScreen('persona')">
+          Start Your Quest
+          <span class="btn-arrow">→</span>
+        </button>
+        <button class="btn btn-ghost" onclick="App.showScreen('profile')">
+          View Progress
+        </button>
+      </div>
+      <p class="welcome-sub">No installation required · Runs in your browser · Progress saved locally</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SCREEN: PERSONA SELECT ═══════════════ -->
+  <div id="screen-persona" class="screen">
+    <div class="screen-header">
+      <button class="btn-back" onclick="App.showScreen('welcome')">← Back</button>
+      <h2>Choose Your Path</h2>
+      <p class="screen-subtitle">Select the level that best fits where you are right now</p>
+    </div>
+    <div class="persona-grid">
+
+      <div class="persona-card beginner" onclick="App.selectPersona('beginner')">
+        <div class="persona-badge">🌱</div>
+        <h3>Explorer</h3>
+        <div class="persona-tag">Beginner</div>
+        <p class="persona-desc">New to Git or version control? Start here. You'll build a solid foundation through visual, hands-on lessons with no prior knowledge needed.</p>
+        <ul class="persona-topics">
+          <li>✦ What is Git & why it matters</li>
+          <li>✦ Commits, branches & merges</li>
+          <li>✦ Working with GitHub</li>
+          <li>✦ Basic IDE source control</li>
+        </ul>
+        <div class="persona-stats">
+          <span>12 Lessons</span>
+          <span>~2 hours</span>
+          <span>No prereqs</span>
+        </div>
+        <button class="btn btn-persona beginner-btn">Begin as Explorer →</button>
+      </div>
+
+      <div class="persona-card intermediate" onclick="App.selectPersona('intermediate')">
+        <div class="persona-badge">🔀</div>
+        <h3>Adventurer</h3>
+        <div class="persona-tag">Intermediate</div>
+        <p class="persona-desc">You know the basics but want to work smarter. Tackle real team scenarios, merge conflicts, pull requests, and IDE workflows.</p>
+        <ul class="persona-topics">
+          <li>✦ Branching strategies & PRs</li>
+          <li>✦ Merge conflicts & rebasing</li>
+          <li>✦ VS Code Source Control</li>
+          <li>✦ Undoing mistakes safely</li>
+        </ul>
+        <div class="persona-stats">
+          <span>10 Lessons</span>
+          <span>~3 hours</span>
+          <span>Basic Git needed</span>
+        </div>
+        <button class="btn btn-persona intermediate-btn">Begin as Adventurer →</button>
+      </div>
+
+      <div class="persona-card expert" onclick="App.selectPersona('expert')">
+        <div class="persona-badge">⚡</div>
+        <h3>Master</h3>
+        <div class="persona-tag">Expert</div>
+        <p class="persona-desc">Real-world incidents, advanced workflows, and team governance. You'll handle production hotfixes, bisect regressions, and architect team Git strategies.</p>
+        <ul class="persona-topics">
+          <li>✦ Git internals & advanced rebase</li>
+          <li>✦ Git bisect, hooks, submodules</li>
+          <li>✦ Production incident simulations</li>
+          <li>✦ Team workflows at scale</li>
+        </ul>
+        <div class="persona-stats">
+          <span>8 Lessons</span>
+          <span>~4 hours</span>
+          <span>Solid Git experience</span>
+        </div>
+        <button class="btn btn-persona expert-btn">Begin as Master →</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════ SCREEN: WORLD MAP ═══════════════ -->
+  <div id="screen-worldmap" class="screen">
+    <div class="worldmap-header">
+      <div class="worldmap-title-area">
+        <button class="btn-back" onclick="App.showScreen('persona')">← Change Path</button>
+        <div>
+          <h2 id="worldmap-title">Explorer Path</h2>
+          <p id="worldmap-subtitle">Your Git journey starts here</p>
+        </div>
+      </div>
+      <div class="worldmap-hud">
+        <div class="hud-item">
+          <span class="hud-label">XP</span>
+          <span class="hud-value" id="hud-xp">0</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Level</span>
+          <span class="hud-value" id="hud-level">1</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Streak</span>
+          <span class="hud-value" id="hud-streak">0 🔥</span>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="App.showScreen('profile')">Profile</button>
+      </div>
+    </div>
+    <div class="xp-bar-container">
+      <div class="xp-bar" id="xp-bar"></div>
+      <span class="xp-bar-label" id="xp-bar-label">0 / 500 XP</span>
+    </div>
+    <div class="level-map" id="level-map">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <!-- ═══════════════ SCREEN: LESSON ═══════════════ -->
+  <div id="screen-lesson" class="screen">
+    <div class="lesson-layout">
+
+      <!-- Left: lesson info sidebar -->
+      <div class="lesson-sidebar">
+        <button class="btn-back" onclick="App.showScreen('worldmap')">← Map</button>
+        <div class="lesson-meta">
+          <div class="lesson-badge" id="lesson-badge">🌱</div>
+          <h3 id="lesson-title">Lesson Title</h3>
+          <div class="lesson-xp-pill" id="lesson-xp-pill">+100 XP</div>
+        </div>
+        <div class="lesson-progress-steps" id="lesson-steps">
+          <!-- Populated by JS -->
+        </div>
+        <div class="lesson-tip-box" id="lesson-tip-box">
+          <span class="tip-icon">💡</span>
+          <span id="lesson-tip-text">Tip text here</span>
+        </div>
+        <div class="command-reference" id="command-reference">
+          <!-- Populated per lesson -->
+        </div>
+      </div>
+
+      <!-- Center: main lesson area -->
+      <div class="lesson-main">
+        <div class="lesson-stage" id="lesson-stage">
+          <!-- Dynamic content rendered by JS -->
+        </div>
+        <div class="lesson-controls">
+          <button class="btn btn-ghost" id="btn-hint" onclick="App.showHint()">💡 Hint</button>
+          <div class="lesson-nav">
+            <button class="btn btn-secondary" id="btn-prev" onclick="App.prevStep()">← Prev</button>
+            <button class="btn btn-primary" id="btn-next" onclick="App.nextStep()">Next →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: git visualizer -->
+      <div class="lesson-visualizer">
+        <div class="visualizer-header">
+          <span class="viz-title">Git Graph</span>
+          <div class="viz-tabs">
+            <button class="viz-tab active" onclick="App.switchVizTab('graph', this)">Graph</button>
+            <button class="viz-tab" onclick="App.switchVizTab('terminal', this)">Terminal</button>
+          </div>
+        </div>
+        <div class="viz-panel active" id="viz-graph">
+          <svg id="git-svg" width="100%" height="320"></svg>
+          <div class="git-legend" id="git-legend"></div>
+        </div>
+        <div class="viz-panel" id="viz-terminal">
+          <div class="terminal-window">
+            <div class="terminal-titlebar">
+              <span class="t-dot red"></span>
+              <span class="t-dot yellow"></span>
+              <span class="t-dot green"></span>
+              <span class="t-title">bash — GitQuest Terminal</span>
+            </div>
+            <div class="terminal-output" id="terminal-output"></div>
+            <div class="terminal-input-row">
+              <span class="terminal-prompt" id="terminal-prompt">$ </span>
+              <input type="text" class="terminal-input" id="terminal-input"
+                     placeholder="Type a git command…"
+                     autocomplete="off" spellcheck="false"
+                     onkeydown="Terminal.handleKey(event)" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════ SCREEN: PROFILE ═══════════════ -->
+  <div id="screen-profile" class="screen">
+    <div class="screen-header">
+      <button class="btn-back" onclick="App.goBack()">← Back</button>
+      <h2>Your Profile</h2>
+    </div>
+    <div class="profile-layout">
+      <div class="profile-card">
+        <div class="profile-avatar">⎇</div>
+        <h3 id="profile-name">Git Developer</h3>
+        <p id="profile-level-label" class="profile-level">Explorer • Level 1</p>
+        <div class="profile-xp-bar">
+          <div id="profile-xp-fill"></div>
+        </div>
+        <p id="profile-xp-text" class="profile-xp-text">0 / 500 XP to next level</p>
+      </div>
+      <div class="profile-stats-grid" id="profile-stats">
+        <!-- Populated by JS -->
+      </div>
+      <div class="achievements-section">
+        <h3>Achievements</h3>
+        <div class="achievements-grid" id="achievements-grid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- #app -->
+
+<!-- ═══════════════ OVERLAYS ═══════════════ -->
+
+<!-- Level Complete Modal -->
+<div id="modal-levelcomplete" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-confetti" id="confetti-container"></div>
+    <div class="modal-icon">🎉</div>
+    <h2>Level Complete!</h2>
+    <p id="modal-lesson-name">Lesson Name</p>
+    <div class="xp-award">
+      <span class="xp-award-label">XP Earned</span>
+      <span class="xp-award-value" id="modal-xp">+100</span>
+    </div>
+    <div id="modal-achievements" class="modal-achievements"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="App.onLevelCompleteContinue()">Continue →</button>
+      <button class="btn btn-ghost" onclick="App.showScreen('worldmap')">Back to Map</button>
+    </div>
+  </div>
+</div>
+
+<!-- Achievement Toast -->
+<div id="achievement-toast" class="achievement-toast hidden">
+  <div class="toast-icon" id="toast-icon">🏆</div>
+  <div class="toast-content">
+    <div class="toast-title">Achievement Unlocked!</div>
+    <div class="toast-name" id="toast-name">First Commit</div>
+  </div>
+</div>
+
+<!-- Conflict Editor Modal -->
+<div id="modal-conflict" class="modal-overlay hidden">
+  <div class="modal-box modal-wide">
+    <h3>⚡ Merge Conflict</h3>
+    <p id="conflict-context"></p>
+    <div class="conflict-editor" id="conflict-editor">
+      <div class="conflict-file-header" id="conflict-file-header"></div>
+      <textarea class="conflict-textarea" id="conflict-textarea" spellcheck="false"></textarea>
+    </div>
+    <div class="conflict-actions">
+      <button class="btn btn-secondary" onclick="App.resolveConflict('ours')">Keep Ours</button>
+      <button class="btn btn-secondary" onclick="App.resolveConflict('theirs')">Keep Theirs</button>
+      <button class="btn btn-secondary" onclick="App.resolveConflict('both')">Keep Both</button>
+      <button class="btn btn-primary" onclick="App.submitConflictResolution()">Commit Merge ✓</button>
+    </div>
+    <div class="conflict-hint" id="conflict-hint"></div>
+  </div>
+</div>
+
+<!-- IDE Simulation Modal -->
+<div id="modal-ide" class="modal-overlay hidden">
+  <div class="modal-box modal-fullish">
+    <button class="modal-close" onclick="App.closeModal('modal-ide')">✕</button>
+    <div id="ide-content"></div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/visualizer.js"></script>
+<script src="js/terminal.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
