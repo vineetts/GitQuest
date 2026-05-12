@@ -2,7 +2,7 @@
 
 > **Learn Git by playing.** An interactive, browser-based game that takes you from zero to Git expert through visual lessons, IDE simulations, and real-world incident scenarios.
 
-[![Live Demo](https://img.shields.io/badge/▶_Play_Now-GitQuest-3fb950?style=for-the-badge)](https://your-username.github.io/GitQuest)
+[![Live Demo](https://img.shields.io/badge/▶_Play_Now-GitQuest-3fb950?style=for-the-badge)](https://vineetsoppadandi.github.io/GitQuest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 [![No dependencies](https://img.shields.io/badge/dependencies-zero-orange?style=for-the-badge)]()
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=for-the-badge)](CONTRIBUTING.md)
