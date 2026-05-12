@@ -21,12 +21,14 @@
   --purple:      #bc8cff;
   --yellow:      #e3b341;
 
-  --beginner:    #3fb950;
-  --beginner-bg: #0d2818;
-  --inter:       #58a6ff;
-  --inter-bg:    #0a1929;
-  --expert:      #f0883e;
-  --expert-bg:   #1f1108;
+  --beginner:      #3fb950;
+  --beginner-bg:   #0d2818;
+  --inter:         #58a6ff;
+  --inter-bg:      #0a1929;
+  --expert:        #f0883e;
+  --expert-bg:     #1f1108;
+  --innovator:     #d2a8ff;
+  --innovator-bg:  #160d24;
 
   --radius:      10px;
   --radius-lg:   16px;
@@ -1467,3 +1469,214 @@ body {
   .profile-stats-grid { grid-template-columns: repeat(2, 1fr); }
   .worldmap-header { flex-direction: column; align-items: flex-start; }
 }
+
+/* ═══════════════════════════════════════════════
+   INNOVATOR PATH — Persona card & level styles
+   ═══════════════════════════════════════════════ */
+
+.persona-card.innovator::before {
+  background: radial-gradient(ellipse 80% 40% at 50% 0%, var(--innovator-bg) 0%, transparent 70%);
+}
+.persona-card.innovator:hover { border-color: var(--innovator); }
+.innovator .persona-tag {
+  background: var(--innovator-bg);
+  color: var(--innovator);
+  border: 1px solid var(--innovator);
+}
+.innovator-btn { background: var(--innovator); color: #000; border-color: var(--innovator); }
+.innovator-btn:hover { background: #e0c0ff; }
+
+/* "NEW" badge on innovator card */
+.innovator-new-badge {
+  position: absolute;
+  top: 14px; right: 14px;
+  background: linear-gradient(135deg, #d2a8ff, #bc8cff);
+  color: #000;
+  font-size: .7rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 100px;
+  letter-spacing: .5px;
+}
+.persona-card.innovator { position: relative; }
+
+/* World map level items */
+.level-item.innovator .level-number { border-color: var(--innovator); color: var(--innovator); }
+.level-item.innovator.completed { border-color: var(--innovator); background: linear-gradient(90deg, var(--innovator-bg), var(--bg2)); }
+.level-item.innovator.completed .level-number { background: var(--innovator); color: #000; border-color: var(--innovator); }
+
+/* Welcome screen accent — extends for innovator glow */
+#screen-welcome { background: radial-gradient(ellipse 80% 60% at 50% 30%, #0a1520 0%, var(--bg) 70%); }
+
+/* ── AI Commit diff viewer ─────────────────────── */
+.diff-viewer {
+  background: #0d1117;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  line-height: 1.8;
+  overflow-x: auto;
+}
+.diff-add  { color: var(--green); }
+.diff-del  { color: var(--red); }
+.diff-meta { color: var(--blue); }
+
+/* ── Agent workflow stepper ────────────────────── */
+.agent-progress {
+  height: 4px;
+  background: var(--bg3);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.agent-progress-fill {
+  height: 100%;
+  background: var(--innovator);
+  border-radius: 2px;
+  transition: width .5s cubic-bezier(.4,0,.2,1);
+}
+
+/* Innovator-coloured action buttons */
+.btn-innovator {
+  background: rgba(210,168,255,.15);
+  border: 1px solid rgba(210,168,255,.3);
+  color: var(--innovator);
+}
+.btn-innovator:hover { background: rgba(210,168,255,.25); }
+
+/* Feature flag toggle (used in TBD lesson) */
+.flag-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-size: .85rem;
+}
+.flag-toggle.on  { border-color: var(--green); color: var(--green); }
+.flag-toggle.off { border-color: var(--red);   color: var(--red); }
+
+.flag-toggle-dot {
+  width: 20px; height: 12px;
+  background: var(--border);
+  border-radius: 6px;
+  position: relative;
+  transition: background var(--transition);
+}
+.flag-toggle-dot::after {
+  content: '';
+  position: absolute;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: #fff;
+  top: 1px; left: 1px;
+  transition: transform var(--transition);
+}
+.flag-toggle.on .flag-toggle-dot  { background: var(--green); }
+.flag-toggle.on .flag-toggle-dot::after { transform: translateX(8px); }
+
+/* GitOps pipeline diagram */
+.gitops-pipeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 20px;
+  overflow-x: auto;
+}
+.pipeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 90px;
+  text-align: center;
+}
+.pipeline-icon {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  border: 2px solid var(--border);
+  background: var(--bg2);
+  transition: all var(--transition);
+}
+.pipeline-icon.active { border-color: var(--innovator); box-shadow: 0 0 0 4px rgba(210,168,255,.15); }
+.pipeline-icon.done   { border-color: var(--green); background: rgba(63,185,80,.1); }
+.pipeline-label { font-size: .72rem; color: var(--text-muted); }
+.pipeline-arrow { color: var(--text-dim); font-size: 1.2rem; padding: 0 6px; margin-bottom: 20px; flex-shrink: 0; }
+
+/* Conventional commit type chips */
+.cc-type-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.cc-type-item {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cc-type-item code { color: var(--purple); font-size: .82rem; }
+.cc-type-item .cc-bump { font-size: .7rem; color: var(--text-muted); }
+.cc-type-item .cc-bump.patch { color: var(--green); }
+.cc-type-item .cc-bump.minor { color: var(--blue); }
+.cc-type-item .cc-bump.major { color: var(--red); font-weight: 600; }
+.cc-type-item .cc-bump.none  { color: var(--text-dim); }
+
+/* MCP connection diagram */
+.mcp-diagram {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.mcp-node {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  text-align: center;
+}
+.mcp-node .mcp-icon { font-size: 2rem; display: block; margin-bottom: 6px; }
+.mcp-node .mcp-label { font-size: .8rem; font-weight: 600; }
+.mcp-node .mcp-sub   { font-size: .72rem; color: var(--text-muted); margin-top: 3px; }
+.mcp-node.active { border-color: var(--innovator); }
+
+.mcp-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: .7rem;
+  color: var(--text-muted);
+}
+.mcp-arrow .mcp-line {
+  width: 40px; height: 2px;
+  background: linear-gradient(90deg, var(--border), var(--innovator), var(--border));
+  border-radius: 1px;
+  position: relative;
+}
+.mcp-arrow .mcp-line::after {
+  content: '▶';
+  position: absolute;
+  right: -8px;
+  top: -7px;
+  color: var(--innovator);
+  font-size: .7rem;
+}
+

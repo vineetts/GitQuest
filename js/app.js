@@ -21,7 +21,8 @@ const App = (() => {
   const PERSONA_META = {
     beginner:     { label: 'Explorer',    color: '#3fb950', nextPersona: 'intermediate' },
     intermediate: { label: 'Adventurer',  color: '#58a6ff', nextPersona: 'expert' },
-    expert:       { label: 'Master',      color: '#f0883e', nextPersona: null }
+    expert:       { label: 'Master',      color: '#f0883e', nextPersona: 'innovator' },
+    innovator:    { label: 'Innovator',   color: '#d2a8ff', nextPersona: null }
   };
 
   // ── Init ──────────────────────────────────────
@@ -452,17 +453,161 @@ const App = (() => {
   }
 
   function renderIDE(stage, step) {
-    if (step.mode === 'vscode-scm') {
-      renderVSCodeSCM(stage, step);
-    } else if (step.mode === 'github-pr') {
-      renderGitHubPR(stage, step);
-    } else if (step.mode === 'vscode-advanced') {
-      renderVSCodeAdvanced(stage, step);
-    } else if (step.mode === 'github-settings') {
-      renderGitHubSettings(stage, step);
-    } else {
-      renderGenericIDE(stage, step);
-    }
+    if (step.mode === 'vscode-scm')        renderVSCodeSCM(stage, step);
+    else if (step.mode === 'github-pr')    renderGitHubPR(stage, step);
+    else if (step.mode === 'vscode-advanced') renderVSCodeAdvanced(stage, step);
+    else if (step.mode === 'github-settings') renderGitHubSettings(stage, step);
+    else if (step.mode === 'ai-commit')    renderAICommit(stage, step);
+    else if (step.mode === 'ai-review')    renderAIReview(stage, step);
+    else if (step.mode === 'agent-workflow')  renderAgentWorkflow(stage, step);
+    else if (step.mode === 'dependabot-prs') renderDependabotPRs(stage, step);
+    else renderGenericIDE(stage, step);
+  }
+
+  // ── AI Commit message comparison ──────────────
+  function renderAICommit(stage, step) {
+    const diffHtml = escHtml(step.diff || '').replace(/\n/g, '<br>').replace(/@@[^@]+@@/g, s => `<span style="color:var(--blue)">${s}</span>`).replace(/^\+(.*)$/gm, '<span style="color:var(--green)">+$1</span>').replace(/^-(.*)$/gm, '<span style="color:var(--red)">-$1</span>');
+
+    const msgs = (step.aiMessages || []).map((m, i) => {
+      const isBad = m.tool.includes('bad');
+      const borderColor = isBad ? 'var(--red)' : i === 1 ? 'var(--purple)' : 'var(--blue)';
+      const toolColor   = isBad ? 'var(--red)' : i === 1 ? 'var(--purple)' : 'var(--blue)';
+      return `
+        <div style="border:1px solid ${borderColor};border-radius:10px;padding:16px;background:var(--bg)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <span style="font-size:1.2rem">${i === 0 ? '🐙' : i === 1 ? '🤖' : '😬'}</span>
+            <span style="font-weight:600;font-size:.85rem;color:${toolColor}">${m.tool}</span>
+            ${isBad ? '<span style="background:rgba(248,81,73,.15);color:var(--red);font-size:.7rem;padding:2px 8px;border-radius:100px">❌ Bad example</span>' : '<span style="background:rgba(63,185,80,.1);color:var(--green);font-size:.7rem;padding:2px 8px;border-radius:100px">✅ Good</span>'}
+          </div>
+          <pre style="font-family:var(--font-mono);font-size:.78rem;color:var(--text);white-space:pre-wrap;margin:0">${escHtml(m.msg)}</pre>
+        </div>
+      `;
+    }).join('');
+
+    stage.innerHTML = `
+      <div class="concept-box" style="margin-bottom:12px">
+        <h3>🤖 AI-Generated Commit Messages</h3>
+        <p style="color:var(--text-muted);font-size:.88rem">The diff below — how would different tools describe it?</p>
+      </div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:var(--font-mono);font-size:.78rem;line-height:1.8;margin-bottom:16px;overflow-x:auto">
+        ${diffHtml}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">${msgs}</div>
+      <div style="margin-top:14px;background:rgba(210,168,255,.08);border:1px solid rgba(210,168,255,.2);border-radius:10px;padding:14px;font-size:.85rem;color:#d2a8ff">
+        💡 The best commit message combines AI's diff-reading with your business context. Edit the AI draft — add the ticket number, the why, or the security implication it couldn't know.
+      </div>
+    `;
+  }
+
+  // ── AI Code Review panel ───────────────────────
+  function renderAIReview(stage, step) {
+    const sevColor = { critical: 'var(--red)', warning: 'var(--yellow)', suggestion: 'var(--blue)', info: 'var(--text-muted)' };
+    const sevIcon  = { critical: '🔴', warning: '🟡', suggestion: '🔵', info: 'ℹ️' };
+
+    const comments = (step.reviewComments || []).map(c => `
+      <div style="border:1px solid ${sevColor[c.severity] || 'var(--border)'};border-radius:10px;padding:16px;background:var(--bg);margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+          <span style="font-size:1.1rem">${c.icon}</span>
+          <span style="font-weight:600;font-size:.82rem;color:var(--text-muted)">${c.tool}</span>
+          <span style="background:rgba(0,0,0,.2);color:${sevColor[c.severity]};border:1px solid ${sevColor[c.severity]};font-size:.7rem;padding:2px 9px;border-radius:100px;text-transform:uppercase;font-weight:700">${sevIcon[c.severity]} ${c.severity}</span>
+          ${c.file ? `<span style="font-family:var(--font-mono);font-size:.72rem;color:var(--text-dim)">${c.file}:${c.line}</span>` : ''}
+        </div>
+        <p style="font-size:.85rem;color:var(--text);line-height:1.65;margin-bottom:${c.suggestion ? '10px' : '0'}">${c.comment}</p>
+        ${c.suggestion ? `<div style="background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.2);border-radius:7px;padding:10px;font-family:var(--font-mono);font-size:.76rem;color:var(--green)">💡 ${escHtml(c.suggestion)}</div>` : ''}
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-sm btn-secondary" onclick="this.textContent='✅ Resolved';this.disabled=true" style="font-size:.75rem">Mark Resolved</button>
+          <button class="btn btn-sm btn-ghost" style="font-size:.75rem">View Diff</button>
+        </div>
+      </div>
+    `).join('');
+
+    const critCount = (step.reviewComments || []).filter(c => c.severity === 'critical').length;
+
+    stage.innerHTML = `
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-weight:700;font-size:1rem;margin-bottom:4px">🔍 AI Review — ${escHtml(step.prTitle || 'Pull Request')}</div>
+          <div style="font-size:.82rem;color:var(--text-muted)">${(step.reviewComments||[]).length} comments · ${critCount} critical · Reviewed in &lt;60s</div>
+        </div>
+        ${critCount > 0 ? `<div style="background:rgba(248,81,73,.15);color:var(--red);border:1px solid var(--red);padding:6px 14px;border-radius:100px;font-size:.8rem;font-weight:600">🔴 ${critCount} Critical issue${critCount > 1 ? 's' : ''} must be resolved</div>` : '<div style="background:rgba(63,185,80,.1);color:var(--green);border:1px solid var(--green);padding:6px 14px;border-radius:100px;font-size:.8rem">✅ No blockers</div>'}
+      </div>
+      ${comments}
+      <p style="font-size:.78rem;color:var(--text-dim);margin-top:8px">Mark all critical issues resolved before requesting human review. AI review is a first pass — human review focuses on business logic and architecture.</p>
+    `;
+  }
+
+  // ── Agentic workflow stepper ───────────────────
+  function renderAgentWorkflow(stage, step) {
+    const achievement = step.achievement;
+    const agentSteps = step.agentSteps || [];
+
+    const stepsHtml = agentSteps.map((s, i) => `
+      <div class="action-step${completedActions['ag_'+i] ? ' done' : ''}" id="ag-step-${i}">
+        <span style="min-width:22px;font-size:.8rem;font-weight:700;color:var(--text-dim)">${s.step}</span>
+        <div style="flex:1">
+          <div style="font-size:.85rem;font-weight:500;margin-bottom:3px">${s.action}</div>
+          ${completedActions['ag_'+i] ? `<div style="font-family:var(--font-mono);font-size:.75rem;color:var(--green);white-space:pre-wrap">${escHtml(s.output)}</div>` : ''}
+        </div>
+        ${!completedActions['ag_'+i] ? `<button class="btn btn-sm" style="background:rgba(210,168,255,.15);border:1px solid rgba(210,168,255,.3);color:#d2a8ff;font-size:.75rem" onclick="App.runAgentStep(${i}, '${achievement||''}')">▶ Run</button>` : '<span style="color:var(--green)">✅</span>'}
+      </div>
+    `).join('');
+
+    const doneCount = agentSteps.filter((_, i) => completedActions['ag_'+i]).length;
+
+    stage.innerHTML = `
+      <div style="background:rgba(210,168,255,.06);border:1px solid rgba(210,168,255,.2);border-radius:10px;padding:16px;margin-bottom:14px">
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <span style="font-size:1.6rem">🤖</span>
+          <div>
+            <div style="font-weight:700;font-size:.9rem;color:#d2a8ff;margin-bottom:4px">Agent Task</div>
+            <div style="font-size:.88rem;color:var(--text);line-height:1.6">${escHtml(step.task || '')}</div>
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-muted);margin-bottom:4px"><span>Agent progress</span><span>${doneCount}/${agentSteps.length}</span></div>
+          <div style="height:4px;background:var(--bg3);border-radius:2px"><div style="height:100%;width:${(doneCount/agentSteps.length)*100}%;background:#d2a8ff;border-radius:2px;transition:width .4s"></div></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">${stepsHtml}</div>
+      <p style="font-size:.78rem;color:var(--text-dim);margin-top:12px">▶ Click Run on each step to watch the agent work. In real tools (Claude Code, Cursor) this happens automatically — you review the final diff.</p>
+    `;
+  }
+
+  // ── Dependabot / Renovate PR list ─────────────
+  function renderDependabotPRs(stage, step) {
+    const typeIcon  = { security: '🔒', patch: '🔧', minor: '⬆️', major: '💥' };
+    const typeColor = { security: 'var(--red)', patch: 'var(--green)', minor: 'var(--blue)', major: 'var(--yellow)' };
+
+    const prs = (step.prs || []).map(pr => `
+      <div style="background:var(--bg2);border:1px solid ${pr.severity === 'HIGH' ? 'var(--red)' : 'var(--border)'};border-radius:10px;padding:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <div style="min-width:36px;text-align:center;font-size:1.4rem">${typeIcon[pr.type]}</div>
+        <div style="flex:1;min-width:160px">
+          <div style="font-weight:600;font-size:.88rem">${pr.pkg} <span style="color:var(--text-dim)">${pr.from}</span> → <span style="color:${typeColor[pr.type]}">${pr.to}</span></div>
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px">
+            ${pr.cve ? `<span style="color:var(--red);font-weight:600">${pr.cve}</span> · ` : ''}
+            ${pr.severity ? `<span style="color:var(--red)">${pr.severity} severity</span> · ` : ''}
+            PR #${pr.num} · ${pr.autoMerge ? '<span style="color:var(--green)">Auto-merge ON</span>' : '<span style="color:var(--yellow)">Needs review</span>'}
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          ${pr.autoMerge
+            ? `<button class="btn btn-sm btn-secondary" onclick="this.textContent='✅ Auto-merged';this.disabled=true;this.style.color='var(--green)'" style="font-size:.75rem">⚡ Auto-merge</button>`
+            : `<button class="btn btn-sm btn-primary" onclick="this.textContent='✅ Merged';this.disabled=true" style="font-size:.75rem;background:${pr.severity==='HIGH'?'var(--red)':'var(--blue)'}">Review & Merge</button>`
+          }
+        </div>
+      </div>
+    `).join('');
+
+    stage.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <h3 style="font-size:1rem;font-weight:700">🤖 Automated Dependency PRs</h3>
+        <div style="font-size:.8rem;color:var(--text-muted)">Renovate + Dependabot · ${(step.prs||[]).length} open</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">${prs}</div>
+      <div style="margin-top:14px;background:rgba(227,179,65,.07);border:1px solid rgba(227,179,65,.2);border-radius:10px;padding:14px;font-size:.82rem;color:var(--yellow)">
+        🔒 <strong>Security PRs are highest priority.</strong> Merge them immediately — they fix known CVEs in your production dependencies. Patch/minor auto-merges handle themselves. Major version bumps need you to read the migration guide first.
+      </div>
+    `;
   }
 
   function renderVSCodeSCM(stage, step) {
@@ -758,6 +903,18 @@ const App = (() => {
   //  INTERACTION HANDLERS
   // ══════════════════════════════════════════════
 
+  function runAgentStep(idx, achievement) {
+    completedActions['ag_' + idx] = true;
+    const step = currentLevelData.steps[currentStepIndex];
+    const s = (step.agentSteps || [])[idx];
+    if (s) {
+      Terminal.print('cmd', `[Agent] ${s.action}`);
+      Terminal.print('out', s.output);
+    }
+    if (achievement) awardAchievement(achievement);
+    renderStep(currentStepIndex);
+  }
+
   function executeAction(actionId, actionIdx) {
     const step = currentLevelData.steps[currentStepIndex];
     const action = step.actions.find(a => a.id === actionId);
@@ -813,6 +970,7 @@ const App = (() => {
     const q = currentLevelData.steps[stepIdx].questions[qi];
     if (oi === q.correct) {
       showToast('✅', 'Correct!');
+      if (q.achievement) awardAchievement(q.achievement);
     }
 
     renderStep(currentStepIndex);
@@ -1186,7 +1344,7 @@ const App = (() => {
   return {
     init, showScreen, goBack, selectPersona,
     startLesson, nextStep, prevStep, jumpToStep,
-    executeAction, runScenarioStep, completeChallenge,
+    executeAction, runScenarioStep, runAgentStep, completeChallenge,
     selectAnswer, submitCommit, showHint,
     dragStart, dropFile, checkStaging,
     fillConflict, commitConflictResolution,
