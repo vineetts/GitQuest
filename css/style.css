@@ -1680,3 +1680,30 @@ body {
   font-size: .7rem;
 }
 
+
+/* ── Reset Section ── */
+.reset-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.reset-warning {
+  margin-top: .5rem;
+  font-size: .8rem;
+  color: var(--text-muted);
+}
+.btn-danger {
+  background: transparent;
+  border: 1px solid var(--red);
+  color: var(--red);
+  padding: .5rem 1.25rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: .9rem;
+  transition: background .2s, color .2s;
+}
+.btn-danger:hover {
+  background: var(--red);
+  color: #fff;
+}

@@ -262,10 +262,27 @@
           <!-- Populated by JS -->
         </div>
       </div>
+      <div class="reset-section">
+        <button class="btn btn-danger" onclick="App.resetGame()">Reset All Progress</button>
+        <p class="reset-warning">This will erase all XP, completed lessons, and achievements.</p>
+      </div>
     </div>
   </div>
 
 </div><!-- #app -->
+
+<!-- Reset Confirmation Modal -->
+<div id="modal-reset" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-icon">⚠️</div>
+    <h2>Reset All Progress?</h2>
+    <p>All XP, completed lessons, and achievements will be permanently deleted. This cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="App.confirmReset()">Yes, Reset Everything</button>
+      <button class="btn btn-ghost" onclick="App.closeModal('modal-reset')">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════════ OVERLAYS ═══════════════ -->
 

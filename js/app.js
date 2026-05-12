@@ -1340,6 +1340,17 @@ const App = (() => {
     } catch(e) {}
   }
 
+  function resetGame() {
+    document.getElementById('modal-reset').classList.remove('hidden');
+  }
+
+  function confirmReset() {
+    localStorage.removeItem('gitquest_state');
+    state = loadState();
+    closeModal('modal-reset');
+    showScreen('welcome');
+  }
+
   // Public API
   return {
     init, showScreen, goBack, selectPersona,
@@ -1353,7 +1364,8 @@ const App = (() => {
     awardAchievement, showToast,
     onLevelCompleteContinue, closeModal,
     onTerminalCommand, onChallengeAction,
-    resolveConflict, submitConflictResolution
+    resolveConflict, submitConflictResolution,
+    resetGame, confirmReset
   };
 })();
 
