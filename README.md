@@ -11,13 +11,23 @@
 
 ## What is GitQuest?
 
-GitQuest is a **zero-install, browser-only** Git learning game with three structured learning paths. It focuses on **concepts and IDE workflows** — not just command memorisation — so learners build intuition that transfers to any tool.
+GitQuest is a **zero-install, browser-only** Git learning game with three structured learning paths. It focuses on **concepts and IDE workflows** — not just command memorisation — so learners progress from Git novice to confident practitioner through 28 interactive lessons, IDE simulations, and real-world incident scenarios.
 
 ```
 Open index.html → Pick your path → Start learning
 ```
 
 No Node.js. No npm. No build step. One folder, open in a browser.
+
+---
+
+## Why GitQuest?
+
+- ✅ **Play instantly** — no installation, no build tools, no sign-up
+- ✅ **Works offline** — after first load, everything runs in your browser
+- ✅ **Zero dependencies** — pure HTML, CSS, and vanilla JavaScript
+- ✅ **All three skill levels** — Beginner → Intermediate → Expert
+- ✅ **Learn by doing** — not just reading: drag-and-drop, simulated terminal, GitHub interface
 
 ---
 
@@ -29,7 +39,7 @@ No Node.js. No npm. No build step. One folder, open in a browser.
 | 💻 **Simulated Terminal** | Full git command simulator with 25+ commands, history (↑↓), and Tab autocomplete |
 | 🖥️ **IDE Mockups** | Interactive VS Code SCM panel and GitHub PR interface simulations |
 | 🖱️ **Drag & Drop** | Physically stage files by dragging them — teaches the three-area model viscerally |
-| 🏆 **12 Achievements** | First Commit, Conflict Hero, Bisect Detective, Git Master, and more |
+| 🏆 **12 Achievements** | First Commit, Conflict Hero, Bisect Detective, Git Master, Rebase Wizard, Branch Boss, and 6 more |
 | 📈 **XP + Streaks** | Progress saved to `localStorage` — pick up where you left off |
 | 🎉 **Confetti + Toasts** | Satisfying feedback on every level complete and achievement unlock |
 | 📱 **Responsive** | Works on tablet screens too |
@@ -91,7 +101,7 @@ No Node.js. No npm. No build step. One folder, open in a browser.
 ### Play Instantly (No Install)
 
 ```bash
-git clone https://github.com/your-username/GitQuest.git
+git clone https://github.com/vineetsoppadandi/GitQuest.git
 cd GitQuest
 # Open index.html in your browser
 open index.html          # macOS
@@ -107,7 +117,7 @@ Or just **double-click `index.html`**. That's it.
 2. Go to **Settings → Pages**
 3. Source: **Deploy from a branch** → `main` → `/ (root)`
 4. Click **Save**
-5. Your game is live at `https://<your-username>.github.io/GitQuest`
+5. Your game is live at `https://<your-username>.github.io/GitQuest` (replace `<your-username>` with your GitHub username)
 
 ### Serve locally (optional, for development)
 
@@ -236,7 +246,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full lesson schema and a step-by-
 - [ ] **GitLab & Bitbucket** variants of IDE simulations
 - [ ] **GitHub Actions lesson** — CI/CD basics
 
-See [open issues](https://github.com/your-username/GitQuest/issues) to contribute.
+See [open issues](https://github.com/vineetsoppadandi/GitQuest/issues) to contribute.
 
 ---
 
