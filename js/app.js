@@ -17,6 +17,71 @@ const App = (() => {
   let completedActions = {};
   let challengeCompleted = {};
 
+  // ── Story narrative data ──────────────────────
+  const STORY_DATA = {
+    beginner: {
+      character: { name: 'Priya', role: 'Senior Dev', avatar: '👩‍💻' },
+      arcs: [
+        { upTo: 3,  title: 'Chapter 1 · First Day',        text: 'You just landed your first dev job at TechStart Inc. Priya hands you a laptop: "All code lives in Git. Don\'t break main." The adventure begins.' },
+        { upTo: 7,  title: 'Chapter 2 · The Feature Branch', text: 'Your first solo feature! Priya trusts you to branch, commit, and open your first pull request. The team is watching.' },
+        { upTo: 12, title: 'Chapter 3 · Team Player',       text: 'The team is growing fast. Merge conflicts, code reviews, and real collaboration — you\'re no longer just a newcomer.' }
+      ],
+      quotes: [
+        '"Day one. Git awaits you."',
+        '"You\'re getting the hang of it, rookie."',
+        '"The team actually trusts your commits now."',
+        '"Half the senior devs can\'t do what you just did."',
+        '"🎉 Explorer complete — you\'ve earned your stripes."'
+      ]
+    },
+    intermediate: {
+      character: { name: 'Alex', role: 'Tech Lead', avatar: '🧑‍💻' },
+      arcs: [
+        { upTo: 3,  title: 'Chapter 1 · The Incident',       text: 'A hotfix is needed in production NOW. Alex needs you to handle it without breaking main. No pressure.' },
+        { upTo: 7,  title: 'Chapter 2 · Pull Request Wars',  text: 'PRs are piling up, conflicts everywhere. Alex points at the backlog: "Clean it up. You know how." Do you?' },
+        { upTo: 10, title: 'Chapter 3 · Clean History',      text: 'The big release is tomorrow. Squash, rebase, and amend — the commit history needs to tell a clean story.' }
+      ],
+      quotes: [
+        '"Production is on fire. Can you handle it?"',
+        '"Surviving the chaos. Alex is watching closely."',
+        '"You\'re becoming the go-to person for Git fires."',
+        '"Almost mastered the craft. One more push."',
+        '"🎉 Adventurer complete — the expert path awaits."'
+      ]
+    },
+    expert: {
+      character: { name: 'Sam', role: 'Staff Engineer', avatar: '🧙‍♂️' },
+      arcs: [
+        { upTo: 2,  title: 'Chapter 1 · The Detective',  text: 'A regression just hit production. Sam hands you the keyboard: "Find the commit that broke it." The clock is ticking.' },
+        { upTo: 5,  title: 'Chapter 2 · The Architect',  text: 'You\'re designing the Git workflow for a 50-person team. Hooks, policies, automation — all on you.' },
+        { upTo: 8,  title: 'Chapter 3 · The Release',    text: 'Release day. Tags, changelogs, rollbacks, submodules. One wrong move and 10k users feel it immediately.' }
+      ],
+      quotes: [
+        '"The regression hunt begins. Start bisecting."',
+        '"You think like a senior. Sam is impressed."',
+        '"The team follows your Git patterns as gospel now."',
+        '"One last challenge before true mastery."',
+        '"🎉 Master complete — you\'ve earned the ⚡ badge."'
+      ]
+    },
+    innovator: {
+      character: { name: 'Jordan', role: 'Principal Engineer', avatar: '🚀' },
+      arcs: [
+        { upTo: 3,  title: 'Chapter 1 · The Future Stack',  text: 'Jordan just returned from KubeCon. "We\'re going trunk-based, GitOps, and AI-assisted. All of it. Starting now. You\'re leading it."' },
+        { upTo: 6,  title: 'Chapter 2 · The AI Co-Pilot',   text: 'Your new teammates are Claude Code, Copilot, and Cursor. You\'re learning to direct AI agents across your codebase.' },
+        { upTo: 9,  title: 'Chapter 3 · The Platform',      text: 'You\'re not just writing code — you\'re building the systems that let 200 engineers ship safely every day.' },
+        { upTo: 11, title: 'Chapter 4 · The Frontier',      text: 'MCP, merge queues, autonomous Dependabot. Welcome to the cutting edge of how elite teams ship software.' }
+      ],
+      quotes: [
+        '"The future of Git development awaits you."',
+        '"Trunk-based and thriving. Jordan approves."',
+        '"Your AI agents are shipping PRs while you sleep."',
+        '"Building platforms others dream about. Legendary."',
+        '"🎉 Innovator complete — you\'re at the frontier."'
+      ]
+    }
+  };
+
   // ── Persona color map ─────────────────────────
   const PERSONA_META = {
     beginner:     { label: 'Explorer',    color: '#3fb950', nextPersona: 'intermediate' },
@@ -70,6 +135,57 @@ const App = (() => {
   }
 
   // ══════════════════════════════════════════════
+  //  STORY ARC CARD
+  // ══════════════════════════════════════════════
+  function renderStoryArcCard(persona, progress, data) {
+    let card = document.getElementById('story-arc-card');
+    if (!card) {
+      card = document.createElement('div');
+      card.id = 'story-arc-card';
+      const map = document.getElementById('level-map');
+      map.parentNode.insertBefore(card, map);
+    }
+
+    const story = STORY_DATA[persona];
+    if (!story) { card.innerHTML = ''; return; }
+
+    const totalLevels  = data.levels.length;
+    const doneCount    = progress.completedLevels.length;
+    const pct          = Math.round((doneCount / totalLevels) * 100);
+    const color        = PERSONA_META[persona]?.color || '#3fb950';
+
+    // Pick current arc based on completed level index
+    const arc = story.arcs.find(a => doneCount <= a.upTo) || story.arcs[story.arcs.length - 1];
+
+    // Pick quote based on progress bucket
+    const qIdx = Math.min(Math.floor((doneCount / totalLevels) * (story.quotes.length - 1)), story.quotes.length - 1);
+    const quote = story.quotes[qIdx];
+
+    card.innerHTML = `
+      <div class="story-arc-card" style="--arc-color:${color}">
+        <div class="arc-character">
+          <div class="arc-avatar">${story.character.avatar}</div>
+          <div class="arc-char-info">
+            <div class="arc-char-name">${story.character.name}</div>
+            <div class="arc-char-role">${story.character.role}</div>
+          </div>
+        </div>
+        <div class="arc-body">
+          <div class="arc-chapter">${arc.title}</div>
+          <p class="arc-narrative">${arc.text}</p>
+          <div class="arc-quote">${quote}</div>
+        </div>
+        <div class="arc-progress">
+          <div class="arc-bar-wrap">
+            <div class="arc-bar-fill" style="width:${pct}%;background:${color}"></div>
+          </div>
+          <span class="arc-pct">${doneCount}/${totalLevels} lessons · ${pct}%</span>
+        </div>
+      </div>
+    `;
+  }
+
+  // ══════════════════════════════════════════════
   //  WORLD MAP
   // ══════════════════════════════════════════════
   function renderWorldMap() {
@@ -94,6 +210,9 @@ const App = (() => {
     const xpInLevel = progress.xp % 500;
     document.getElementById('xp-bar').style.width = `${(xpInLevel / 500) * 100}%`;
     document.getElementById('xp-bar-label').textContent = `${progress.xp} XP total`;
+
+    // Story arc card
+    renderStoryArcCard(persona, progress, data);
 
     // Level map
     const map = document.getElementById('level-map');
@@ -236,6 +355,8 @@ const App = (() => {
       case 'conflictresolver': renderConflictResolver(stage, step); break;
       case 'scenario':      renderScenario(stage, step); break;
       case 'challenge':     renderChallenge(stage, step); break;
+      case 'crisis':        renderCrisis(stage, step); break;
+      case 'hotfix':        renderHotfix(stage, step); break;
       default:              stage.innerHTML = `<p>${step.type} step</p>`; break;
     }
 
@@ -269,21 +390,58 @@ const App = (() => {
   // ══════════════════════════════════════════════
 
   function renderStory(stage, step) {
+    const story   = STORY_DATA[currentPersona];
+    const char    = story?.character || { name: 'Guide', role: '', avatar: '🧑‍💻' };
+    const color   = PERSONA_META[currentPersona]?.color || '#3fb950';
+    const context = step.context || '';
+
     stage.innerHTML = `
-      <div class="stage-story">
-        <h2>${step.title}</h2>
-        <p class="story-context">${step.context}</p>
-        <div class="story-objective">
-          <span>🎯</span>
-          <span>${step.objective || ''}</span>
+      <div class="stage-story-v2">
+        <div class="story-scene-title">${escHtml(step.title)}</div>
+
+        <div class="story-bubble-row">
+          <div class="story-char-col">
+            <div class="story-avatar" style="border-color:${color}">${char.avatar}</div>
+            <div class="story-char-name" style="color:${color}">${char.name}</div>
+            <div class="story-char-role">${char.role}</div>
+          </div>
+          <div class="story-bubble" style="border-color:${color}20">
+            <div class="story-bubble-tail" style="border-right-color:${color}20"></div>
+            <p class="story-bubble-text" id="story-typewriter"></p>
+          </div>
+        </div>
+
+        ${step.objective ? `
+          <div class="story-objective-v2" style="border-left-color:${color}">
+            <span class="obj-icon">🎯</span>
+            <span class="obj-text">${escHtml(step.objective)}</span>
+          </div>
+        ` : ''}
+
+        <div class="story-dots">
+          ${currentLevelData.steps.map((_, i) =>
+            `<div class="story-dot ${i < currentStepIndex ? 'done' : i === currentStepIndex ? 'active' : ''}" style="${i === currentStepIndex ? `background:${color}` : ''}"></div>`
+          ).join('')}
         </div>
       </div>
-      <div class="progress-indicator">
-        ${currentLevelData.steps.map((_, i) =>
-          `<div class="progress-dot ${i < currentStepIndex ? 'done' : i === currentStepIndex ? 'active' : ''}"></div>`
-        ).join('')}
-      </div>
     `;
+
+    // Typewriter effect
+    typewriterEffect('story-typewriter', context, 22);
+  }
+
+  function typewriterEffect(elId, text, speed) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    el.textContent = '';
+    let i = 0;
+    const tick = () => {
+      if (i < text.length) {
+        el.textContent += text[i++];
+        setTimeout(tick, speed);
+      }
+    };
+    tick();
   }
 
   function renderConcept(stage, step) {
@@ -439,6 +597,11 @@ const App = (() => {
           ${ans !== undefined ? `
             <div class="quiz-feedback show ${ans === q.correct ? 'correct' : 'wrong'}">
               ${q.explanation}
+              ${!!(ans !== undefined && ans !== q.correct && q.wrongConsequences?.[ans]) ? `
+                <div class="quiz-consequence">
+                  <span class="consequence-label">⚠️ Real-world consequence:</span>
+                  ${escHtml(q.wrongConsequences[ans])}
+                </div>` : ''}
             </div>
           ` : ''}
         </div>
@@ -900,6 +1063,145 @@ const App = (() => {
   }
 
   // ══════════════════════════════════════════════
+  //  CRISIS & HOTFIX RENDERERS
+  // ══════════════════════════════════════════════
+
+  function renderCrisis(stage, step) {
+    const urgencyColor = step.urgency === 'high' ? 'var(--red)' : 'var(--orange)';
+    const urgencyLabel = step.urgency === 'high' ? '🔴 HIGH SEVERITY' : '🟠 MEDIUM SEVERITY';
+
+    const choicesHtml = (step.choices || []).map((c, i) => `
+      <button class="crisis-choice" id="crisis-choice-${i}"
+              onclick="App.selectCrisisChoice(${i})"
+              style="text-align:left">
+        <div class="crisis-choice-label"><code>${escHtml(c.label)}</code></div>
+        <div class="crisis-choice-desc">${escHtml(c.desc)}</div>
+      </button>
+    `).join('');
+
+    stage.innerHTML = `
+      <div class="crisis-card">
+        <div class="crisis-banner" style="background:${urgencyColor}20;border-color:${urgencyColor}">
+          <span class="crisis-badge" style="background:${urgencyColor}">${urgencyLabel}</span>
+          <h3 class="crisis-title">${step.title}</h3>
+        </div>
+        <div class="crisis-situation">
+          <div class="crisis-situation-label">📟 SITUATION</div>
+          <p class="crisis-situation-text" id="crisis-typewriter"></p>
+        </div>
+        ${step.clue ? `
+          <div class="crisis-clue">
+            <span>💡</span> <span>${escHtml(step.clue)}</span>
+          </div>
+        ` : ''}
+        <div class="crisis-question">What do you do?</div>
+        <div class="crisis-choices" id="crisis-choices">${choicesHtml}</div>
+        <div class="crisis-outcome hidden" id="crisis-outcome"></div>
+      </div>
+    `;
+
+    typewriterEffect('crisis-typewriter', step.situation || '', 18);
+  }
+
+  function selectCrisisChoice(idx) {
+    const step = currentLevelData.steps[currentStepIndex];
+    const choice = (step.choices || [])[idx];
+    if (!choice) return;
+
+    // Disable all buttons
+    document.querySelectorAll('.crisis-choice').forEach((btn, i) => {
+      btn.disabled = true;
+      if (i === idx) btn.classList.add(`crisis-selected-${choice.outcome}`);
+    });
+
+    const outcomeEl = document.getElementById('crisis-outcome');
+    const isCorrect = choice.outcome === 'correct';
+    const isDanger  = choice.outcome === 'danger';
+
+    const icon  = isCorrect ? '✅' : isDanger ? '⚠️' : '❌';
+    const label = isCorrect ? 'RESOLVED' : isDanger ? 'RISKY MOVE' : 'WRONG CHOICE';
+    const color = isCorrect ? 'var(--green)' : isDanger ? 'var(--orange)' : 'var(--red)';
+
+    outcomeEl.innerHTML = `
+      <div class="crisis-outcome-inner" style="border-color:${color}">
+        <div class="crisis-outcome-header" style="color:${color}">${icon} ${label}</div>
+        <p class="crisis-outcome-text">${escHtml(choice.result)}</p>
+        ${!isCorrect ? `<button class="btn btn-sm btn-secondary crisis-retry" onclick="App.retryCrisis()">↺ Try a different approach</button>` : `<div class="crisis-xp-bonus" style="color:${color}">+25 XP Bonus for correct resolution!</div>`}
+      </div>
+    `;
+    outcomeEl.classList.remove('hidden');
+
+    if (isCorrect) {
+      const prog = state.progress[currentPersona];
+      if (prog) { prog.xp = (prog.xp || 0) + 25; saveState(); }
+      showToast('🚨', 'Incident Resolved!');
+    }
+  }
+
+  function retryCrisis() {
+    renderStep(currentStepIndex);
+  }
+
+  function renderHotfix(stage, step) {
+    const color = PERSONA_META[currentPersona]?.color || '#3fb950';
+
+    const stepsHtml = (step.steps || []).map((s, i) => `
+      <div class="hotfix-step" id="hotfix-step-${i}">
+        <div class="hotfix-step-num">${i + 1}</div>
+        <div class="hotfix-step-body">
+          <code class="hotfix-cmd">${escHtml(s.cmd)}</code>
+          <div class="hotfix-desc">${escHtml(s.desc)}</div>
+        </div>
+        <button class="hotfix-run btn btn-sm" id="hotfix-btn-${i}"
+                onclick="App.runHotfixStep(${i})" style="border-color:${color};color:${color}">
+          Run ▶
+        </button>
+      </div>
+    `).join('');
+
+    stage.innerHTML = `
+      <div class="hotfix-card">
+        <div class="hotfix-banner">
+          <span class="hotfix-fire">🔥</span>
+          <div>
+            <div class="hotfix-label">HOTFIX RUNBOOK</div>
+            <h3 class="hotfix-title">${escHtml(step.title)}</h3>
+          </div>
+        </div>
+        <div class="hotfix-scenario">${escHtml(step.scenario)}</div>
+        <div class="hotfix-steps">${stepsHtml}</div>
+        <div class="hotfix-outcome hidden" id="hotfix-outcome">
+          <div class="hotfix-outcome-inner">
+            <div class="hotfix-outcome-icon">✅</div>
+            <p>${escHtml(step.outcome)}</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function runHotfixStep(idx) {
+    const step = currentLevelData.steps[currentStepIndex];
+    const s = (step.steps || [])[idx];
+    if (!s) return;
+
+    const btn  = document.getElementById(`hotfix-btn-${idx}`);
+    const row  = document.getElementById(`hotfix-step-${idx}`);
+    if (btn)  { btn.textContent = '✓'; btn.disabled = true; btn.style.color = 'var(--green)'; btn.style.borderColor = 'var(--green)'; }
+    if (row)  row.classList.add('hotfix-done');
+
+    Terminal.print('cmd', s.cmd);
+
+    // Check if all steps done
+    const total = step.steps.length;
+    const doneCount = document.querySelectorAll('.hotfix-done').length;
+    if (doneCount >= total) {
+      document.getElementById('hotfix-outcome').classList.remove('hidden');
+      showToast('🔥', 'Hotfix Complete!');
+    }
+  }
+
+  // ══════════════════════════════════════════════
   //  INTERACTION HANDLERS
   // ══════════════════════════════════════════════
 
@@ -1144,6 +1446,27 @@ const App = (() => {
     modal.classList.remove('hidden');
   }
 
+  function goToMap() {
+    closeModal('modal-levelcomplete');
+    showScreen('worldmap');
+  }
+
+  function promptRestartLesson() {
+    const name = currentLevelData?.title || 'this lesson';
+    document.getElementById('modal-restart-lesson-name').textContent =
+      `Reset "${name}" — your step progress resets to the beginning. Overall XP and other completed lessons are unaffected.`;
+    document.getElementById('modal-restart-lesson').classList.remove('hidden');
+  }
+
+  function confirmRestartLesson() {
+    closeModal('modal-restart-lesson');
+    quizAnswered    = {};
+    completedActions = {};
+    stagedFiles     = [];
+    challengeCompleted = {};
+    renderStep(0);
+  }
+
   function onLevelCompleteContinue() {
     document.getElementById('modal-levelcomplete').classList.add('hidden');
 
@@ -1365,7 +1688,11 @@ const App = (() => {
     onLevelCompleteContinue, closeModal,
     onTerminalCommand, onChallengeAction,
     resolveConflict, submitConflictResolution,
-    resetGame, confirmReset
+    resetGame, confirmReset,
+    goToMap,
+    promptRestartLesson, confirmRestartLesson,
+    selectCrisisChoice, retryCrisis,
+    runHotfixStep
   };
 })();
 
