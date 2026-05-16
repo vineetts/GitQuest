@@ -12,6 +12,8 @@ const App = (() => {
   let currentStepCount = 0;
   let screenHistory = ['welcome'];
   let quizAnswered = {};
+  let quizAttempts = {};      // { stepIdx: { qi: attemptCount } }
+  let quizSkipped  = {};      // { stepIdx: true } — quiz steps skipped via Next
   let draggedFile = null;
   let stagedFiles = [];
   let completedActions = {};
@@ -122,16 +124,66 @@ const App = (() => {
   }
 
   // ══════════════════════════════════════════════
+  //  LIFE STAGE SELECTION
+  // ══════════════════════════════════════════════
+  function selectLifeStage(stage) {
+    state.lifeStage = stage;
+    saveState();
+    showScreen('persona');
+  }
+
+  // ══════════════════════════════════════════════
   //  PERSONA SELECTION
   // ══════════════════════════════════════════════
   function selectPersona(persona) {
     currentPersona = persona;
     state.lastPersona = persona;
     if (!state.progress[persona]) {
-      state.progress[persona] = { xp: 0, completedLevels: [], achievements: [] };
+      state.progress[persona] = { xp: 0, completedLevels: [], skippedLevels: [], achievements: [] };
     }
     saveState();
     showScreen('worldmap');
+  }
+
+  // ══════════════════════════════════════════════
+  //  RESET PATH / RESET MODULE
+  // ══════════════════════════════════════════════
+  function promptResetPath() {
+    const persona = currentPersona;
+    const label = PERSONA_META[persona]?.label || 'this path';
+    document.getElementById('modal-reset-path-name').textContent =
+      `Reset the "${label}" path — all XP and completed lessons for this path will be erased. Other paths and achievements are unaffected.`;
+    document.getElementById('modal-reset-path').classList.remove('hidden');
+  }
+
+  function confirmResetPath() {
+    const persona = currentPersona;
+    if (state.progress[persona]) {
+      state.progress[persona] = { xp: 0, completedLevels: [], skippedLevels: [], achievements: [] };
+      saveState();
+    }
+    closeModal('modal-reset-path');
+    renderWorldMap();
+  }
+
+  function promptResetLevel(levelId, event) {
+    if (event) event.stopPropagation();
+    const data   = GAME_DATA[currentPersona];
+    const level  = data?.levels.find(l => l.id === levelId);
+    const name   = level?.title || levelId;
+    const prog   = state.progress[currentPersona];
+    if (!prog) return;
+
+    if (!confirm(`Reset "${name}"? Your progress for this lesson will be cleared.`)) return;
+
+    prog.completedLevels = prog.completedLevels.filter(id => id !== levelId);
+    if (prog.skippedLevels) prog.skippedLevels = prog.skippedLevels.filter(id => id !== levelId);
+
+    // Deduct XP for that lesson
+    const xpToRemove = level?.xp || 0;
+    prog.xp = Math.max(0, (prog.xp || 0) - xpToRemove);
+    saveState();
+    renderWorldMap();
   }
 
   // ══════════════════════════════════════════════
@@ -231,19 +283,22 @@ const App = (() => {
         map.appendChild(connector);
       }
 
+      const skipped   = progress.skippedLevels?.includes(lvl.id);
       const item = document.createElement('div');
-      item.className = `level-item ${persona}${completed ? ' completed' : ''}${locked ? ' locked' : ''}`;
+      item.className = `level-item ${persona}${completed ? ' completed' : ''}${locked ? ' locked' : ''}${skipped ? ' skipped' : ''}`;
       if (!completed && prevCompleted && !locked) item.classList.add('current');
 
       item.innerHTML = `
-        <div class="level-number">${completed ? '✓' : lvl.num}</div>
+        <div class="level-number">${completed ? '✓' : skipped ? '~' : lvl.num}</div>
         <div class="level-info">
           <h4>${lvl.icon} ${lvl.title}</h4>
           <p>${lvl.subtitle}</p>
+          ${skipped ? '<span class="skipped-badge">Quiz skipped — ½ XP</span>' : ''}
         </div>
         <div class="level-meta">
-          <span class="level-xp">+${lvl.xp} XP</span>
+          <span class="level-xp">${skipped ? `+${Math.floor(lvl.xp/2)} XP` : `+${lvl.xp} XP`}</span>
           <span class="level-type-badge">${lvl.type}</span>
+          ${completed || skipped ? `<button class="btn-level-reset" title="Reset this lesson" onclick="App.promptResetLevel('${lvl.id}', event)">↺</button>` : ''}
         </div>
       `;
 
@@ -261,9 +316,11 @@ const App = (() => {
   function startLesson(levelData) {
     currentLevelData = levelData;
     currentStepIndex = 0;
-    quizAnswered = {};
+    quizAnswered     = {};
+    quizAttempts     = {};
+    quizSkipped      = {};
     completedActions = {};
-    stagedFiles = [];
+    stagedFiles      = [];
 
     showScreen('lesson');
 
@@ -390,10 +447,19 @@ const App = (() => {
   // ══════════════════════════════════════════════
 
   function renderStory(stage, step) {
-    const story   = STORY_DATA[currentPersona];
-    const char    = story?.character || { name: 'Guide', role: '', avatar: '🧑‍💻' };
+    const story     = STORY_DATA[currentPersona];
+    const lifeStage = state.lifeStage || 'working';
+    const levelId   = currentLevelData?.id || '';
+    const key       = `${currentPersona}_${levelId}_${currentStepIndex}`;
+
+    // Look up life-stage override (populated by data-lifestage.js)
+    const lsOverride = (typeof LIFESTAGE_CONTEXTS !== 'undefined')
+      ? LIFESTAGE_CONTEXTS?.[lifeStage]?.[key]
+      : null;
+
+    const char    = lsOverride?.character || story?.character || { name: 'Guide', role: '', avatar: '🧑‍💻' };
     const color   = PERSONA_META[currentPersona]?.color || '#3fb950';
-    const context = step.context || '';
+    const context = lsOverride?.context || step.context || '';
 
     stage.innerHTML = `
       <div class="stage-story-v2">
@@ -572,32 +638,59 @@ const App = (() => {
   }
 
   function renderQuiz(stage, step, stepIdx) {
-    const answered = quizAnswered[stepIdx] || {};
+    const answered  = quizAnswered[stepIdx]  || {};
+    const attempts  = quizAttempts[stepIdx]  || {};
+    const color     = PERSONA_META[currentPersona]?.color || '#3fb950';
 
     const questionsHtml = step.questions.map((q, qi) => {
-      const ans = answered[qi];
+      const ans         = answered[qi];
+      const tryCount    = attempts[qi] || 0;
+      const isRevealed  = tryCount === 99;
+      const isDone      = ans !== undefined;
+      const isCorrect   = isDone && ans === q.correct && !isRevealed;
+
+      // Attempt dots (3 max, filled = used attempt)
+      const dotsHtml = !isDone ? `
+        <div class="quiz-attempts">
+          ${[0,1,2].map(i => `<span class="attempt-dot ${i < tryCount ? 'used' : ''}"></span>`).join('')}
+          <span class="attempt-label">${3 - Math.min(tryCount, 3)} attempt${3 - Math.min(tryCount, 3) !== 1 ? 's' : ''} left</span>
+        </div>` : '';
+
+      // Hint logic (show after 1st wrong, stronger after 2nd)
+      let hintHtml = '';
+      if (!isDone && tryCount >= 1) {
+        const hint = tryCount === 1
+          ? (q.hint || `💡 Hint: Think about the command reference on the left panel.`)
+          : (q.hint2 || q.hint || `💡 Stronger hint: The answer relates to "${q.options[q.correct].slice(0, 30)}…"`);
+        hintHtml = `<div class="quiz-hint">${escHtml(hint)}</div>`;
+      }
+
       return `
         <div class="quiz-question">
           <h4>Q${qi + 1}: ${q.q}</h4>
+          ${dotsHtml}
+          ${hintHtml}
           <div class="quiz-options">
             ${q.options.map((opt, oi) => {
               let cls = '';
-              if (ans !== undefined) {
-                if (oi === q.correct) cls = 'correct';
-                else if (oi === ans && ans !== q.correct) cls = 'wrong';
-              } else if (ans === oi) cls = 'selected';
+              if (isDone) {
+                if (oi === q.correct)                       cls = 'correct';
+                else if (oi === ans && !isRevealed)         cls = 'wrong';
+              }
+              const disabled = isDone ? 'style="pointer-events:none"' : '';
               return `
-                <div class="quiz-option ${cls}" onclick="App.selectAnswer(${stepIdx}, ${qi}, ${oi})">
+                <div class="quiz-option ${cls}" ${disabled} onclick="App.selectAnswer(${stepIdx}, ${qi}, ${oi})">
                   <span class="quiz-option-letter">${String.fromCharCode(65 + oi)}</span>
                   ${opt}
                 </div>
               `;
             }).join('')}
           </div>
-          ${ans !== undefined ? `
-            <div class="quiz-feedback show ${ans === q.correct ? 'correct' : 'wrong'}">
+          ${isDone ? `
+            <div class="quiz-feedback show ${isCorrect ? 'correct' : isRevealed ? 'revealed' : 'wrong'}">
+              ${isRevealed ? `<strong>Answer revealed after 3 attempts.</strong><br>` : ''}
               ${q.explanation}
-              ${!!(ans !== undefined && ans !== q.correct && q.wrongConsequences?.[ans]) ? `
+              ${(!isCorrect && !isRevealed && q.wrongConsequences?.[ans]) ? `
                 <div class="quiz-consequence">
                   <span class="consequence-label">⚠️ Real-world consequence:</span>
                   ${escHtml(q.wrongConsequences[ans])}
@@ -608,11 +701,7 @@ const App = (() => {
       `;
     }).join('');
 
-    stage.innerHTML = `
-      <div class="activity-quiz">
-        ${questionsHtml}
-      </div>
-    `;
+    stage.innerHTML = `<div class="activity-quiz">${questionsHtml}</div>`;
   }
 
   function renderIDE(stage, step) {
@@ -1265,14 +1354,29 @@ const App = (() => {
   }
 
   function selectAnswer(stepIdx, qi, oi) {
+    // Already answered correctly — lock it
     if (quizAnswered[stepIdx]?.[qi] !== undefined) return;
-    if (!quizAnswered[stepIdx]) quizAnswered[stepIdx] = {};
-    quizAnswered[stepIdx][qi] = oi;
 
-    const q = currentLevelData.steps[stepIdx].questions[qi];
-    if (oi === q.correct) {
+    const q        = currentLevelData.steps[stepIdx].questions[qi];
+    const isCorrect = oi === q.correct;
+
+    if (!quizAttempts[stepIdx])    quizAttempts[stepIdx] = {};
+    if (!quizAttempts[stepIdx][qi]) quizAttempts[stepIdx][qi] = 0;
+    quizAttempts[stepIdx][qi]++;
+
+    if (isCorrect) {
+      if (!quizAnswered[stepIdx]) quizAnswered[stepIdx] = {};
+      quizAnswered[stepIdx][qi] = oi;
       showToast('✅', 'Correct!');
       if (q.achievement) awardAchievement(q.achievement);
+    } else {
+      const attempts = quizAttempts[stepIdx][qi];
+      if (attempts >= 3) {
+        // Force-reveal after 3 wrong attempts
+        if (!quizAnswered[stepIdx]) quizAnswered[stepIdx] = {};
+        quizAnswered[stepIdx][qi] = q.correct; // mark as "revealed"
+        quizAttempts[stepIdx][qi] = 99; // sentinel: revealed
+      }
     }
 
     renderStep(currentStepIndex);
@@ -1418,29 +1522,46 @@ const App = (() => {
   // ══════════════════════════════════════════════
   function completeLevel() {
     const persona = currentPersona;
-    const level = currentLevelData;
+    const level   = currentLevelData;
 
     if (!state.progress[persona]) {
-      state.progress[persona] = { xp: 0, completedLevels: [], achievements: [] };
+      state.progress[persona] = { xp: 0, completedLevels: [], skippedLevels: [], achievements: [] };
     }
 
-    const prog = state.progress[persona];
-    const already = prog.completedLevels.includes(level.id);
+    const prog    = state.progress[persona];
+    const already = prog.completedLevels.includes(level.id) || prog.skippedLevels?.includes(level.id);
+
+    // Work out if any quiz steps were skipped
+    const quizSteps = level.steps
+      .map((s, i) => ({ s, i }))
+      .filter(({ s }) => s.type === 'quiz');
+    const anyQuizSkipped = quizSteps.some(({ i }) => !quizAnswered[i] || Object.keys(quizAnswered[i]).length === 0);
+    const fullXP   = level.xp;
+    const earnedXP = anyQuizSkipped ? Math.floor(fullXP / 2) : fullXP;
 
     if (!already) {
-      prog.completedLevels.push(level.id);
-      prog.xp = (prog.xp || 0) + level.xp;
+      if (anyQuizSkipped) {
+        if (!prog.skippedLevels) prog.skippedLevels = [];
+        prog.skippedLevels.push(level.id);
+      } else {
+        prog.completedLevels.push(level.id);
+        // If previously skipped, remove from skipped and award remaining XP
+        prog.skippedLevels = (prog.skippedLevels || []).filter(id => id !== level.id);
+      }
+      prog.xp = (prog.xp || 0) + earnedXP;
       state.streak = (state.streak || 0) + 1;
       saveState();
     }
 
-    // Show modal
     const modal = document.getElementById('modal-levelcomplete');
     document.getElementById('modal-lesson-name').textContent = level.title;
-    document.getElementById('modal-xp').textContent = `+${already ? 0 : level.xp}`;
+    document.getElementById('modal-xp').textContent = already ? '+0' : `+${earnedXP}`;
 
-    // Clear and populate achievements list
-    document.getElementById('modal-achievements').innerHTML = '';
+    // Show skip notice if applicable
+    const achEl = document.getElementById('modal-achievements');
+    achEl.innerHTML = (!already && anyQuizSkipped)
+      ? `<div class="modal-skip-notice">⚠️ Quiz skipped — you earned <strong>${earnedXP} XP</strong> (half). Come back to complete the quiz for the other <strong>${fullXP - earnedXP} XP</strong>.</div>`
+      : '';
 
     spawnConfetti();
     modal.classList.remove('hidden');
@@ -1460,9 +1581,11 @@ const App = (() => {
 
   function confirmRestartLesson() {
     closeModal('modal-restart-lesson');
-    quizAnswered    = {};
+    quizAnswered     = {};
+    quizAttempts     = {};
+    quizSkipped      = {};
     completedActions = {};
-    stagedFiles     = [];
+    stagedFiles      = [];
     challengeCompleted = {};
     renderStep(0);
   }
@@ -1648,12 +1771,13 @@ const App = (() => {
     } catch(e) {}
     return {
       progress: {
-        beginner:     { xp: 0, completedLevels: [], achievements: [] },
-        intermediate: { xp: 0, completedLevels: [], achievements: [] },
-        expert:       { xp: 0, completedLevels: [], achievements: [] }
+        beginner:     { xp: 0, completedLevels: [], skippedLevels: [], achievements: [] },
+        intermediate: { xp: 0, completedLevels: [], skippedLevels: [], achievements: [] },
+        expert:       { xp: 0, completedLevels: [], skippedLevels: [], achievements: [] }
       },
       streak: 0,
-      lastPersona: null
+      lastPersona: null,
+      lifeStage: 'working'
     };
   }
 
@@ -1691,6 +1815,8 @@ const App = (() => {
     resetGame, confirmReset,
     goToMap,
     promptRestartLesson, confirmRestartLesson,
+    promptResetPath, confirmResetPath, promptResetLevel,
+    selectLifeStage,
     selectCrisisChoice, retryCrisis,
     runHotfixStep
   };
