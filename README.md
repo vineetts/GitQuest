@@ -261,6 +261,35 @@ Contributions are warmly welcome! Whether it's:
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
+### Branch Workflow
+
+`main` is the protected branch — all changes go through a PR:
+
+```bash
+# 1. Create a feature branch
+git checkout -b feature/your-feature-name
+
+# 2. Make changes, commit them
+git add <files>
+git commit -m "feat: describe what you did"
+
+# 3. Push and open a PR
+git push -u origin feature/your-feature-name
+# Then open a PR on GitHub → base: main ← compare: feature/your-feature-name
+```
+
+**Branch naming convention:**
+
+| Prefix | Use for |
+|---|---|
+| `feature/` | New lessons, features, personas |
+| `fix/` | Bug fixes |
+| `content/` | Lesson text updates, new crisis scenarios |
+| `style/` | CSS / visual changes only |
+| `chore/` | Deps, CI, config |
+
+> 💡 **Tip:** Install the [GitHub CLI](https://cli.github.com) to create PRs from your terminal with `gh pr create`.
+
 ---
 
 ## License
