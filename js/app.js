@@ -355,6 +355,8 @@ const App = (() => {
       case 'conflictresolver': renderConflictResolver(stage, step); break;
       case 'scenario':      renderScenario(stage, step); break;
       case 'challenge':     renderChallenge(stage, step); break;
+      case 'crisis':        renderCrisis(stage, step); break;
+      case 'hotfix':        renderHotfix(stage, step); break;
       default:              stage.innerHTML = `<p>${step.type} step</p>`; break;
     }
 
@@ -595,6 +597,11 @@ const App = (() => {
           ${ans !== undefined ? `
             <div class="quiz-feedback show ${ans === q.correct ? 'correct' : 'wrong'}">
               ${q.explanation}
+              ${!!(ans !== undefined && ans !== q.correct && q.wrongConsequences?.[ans]) ? `
+                <div class="quiz-consequence">
+                  <span class="consequence-label">⚠️ Real-world consequence:</span>
+                  ${escHtml(q.wrongConsequences[ans])}
+                </div>` : ''}
             </div>
           ` : ''}
         </div>
@@ -1056,6 +1063,145 @@ const App = (() => {
   }
 
   // ══════════════════════════════════════════════
+  //  CRISIS & HOTFIX RENDERERS
+  // ══════════════════════════════════════════════
+
+  function renderCrisis(stage, step) {
+    const urgencyColor = step.urgency === 'high' ? 'var(--red)' : 'var(--orange)';
+    const urgencyLabel = step.urgency === 'high' ? '🔴 HIGH SEVERITY' : '🟠 MEDIUM SEVERITY';
+
+    const choicesHtml = (step.choices || []).map((c, i) => `
+      <button class="crisis-choice" id="crisis-choice-${i}"
+              onclick="App.selectCrisisChoice(${i})"
+              style="text-align:left">
+        <div class="crisis-choice-label"><code>${escHtml(c.label)}</code></div>
+        <div class="crisis-choice-desc">${escHtml(c.desc)}</div>
+      </button>
+    `).join('');
+
+    stage.innerHTML = `
+      <div class="crisis-card">
+        <div class="crisis-banner" style="background:${urgencyColor}20;border-color:${urgencyColor}">
+          <span class="crisis-badge" style="background:${urgencyColor}">${urgencyLabel}</span>
+          <h3 class="crisis-title">${step.title}</h3>
+        </div>
+        <div class="crisis-situation">
+          <div class="crisis-situation-label">📟 SITUATION</div>
+          <p class="crisis-situation-text" id="crisis-typewriter"></p>
+        </div>
+        ${step.clue ? `
+          <div class="crisis-clue">
+            <span>💡</span> <span>${escHtml(step.clue)}</span>
+          </div>
+        ` : ''}
+        <div class="crisis-question">What do you do?</div>
+        <div class="crisis-choices" id="crisis-choices">${choicesHtml}</div>
+        <div class="crisis-outcome hidden" id="crisis-outcome"></div>
+      </div>
+    `;
+
+    typewriterEffect('crisis-typewriter', step.situation || '', 18);
+  }
+
+  function selectCrisisChoice(idx) {
+    const step = currentLevelData.steps[currentStepIndex];
+    const choice = (step.choices || [])[idx];
+    if (!choice) return;
+
+    // Disable all buttons
+    document.querySelectorAll('.crisis-choice').forEach((btn, i) => {
+      btn.disabled = true;
+      if (i === idx) btn.classList.add(`crisis-selected-${choice.outcome}`);
+    });
+
+    const outcomeEl = document.getElementById('crisis-outcome');
+    const isCorrect = choice.outcome === 'correct';
+    const isDanger  = choice.outcome === 'danger';
+
+    const icon  = isCorrect ? '✅' : isDanger ? '⚠️' : '❌';
+    const label = isCorrect ? 'RESOLVED' : isDanger ? 'RISKY MOVE' : 'WRONG CHOICE';
+    const color = isCorrect ? 'var(--green)' : isDanger ? 'var(--orange)' : 'var(--red)';
+
+    outcomeEl.innerHTML = `
+      <div class="crisis-outcome-inner" style="border-color:${color}">
+        <div class="crisis-outcome-header" style="color:${color}">${icon} ${label}</div>
+        <p class="crisis-outcome-text">${escHtml(choice.result)}</p>
+        ${!isCorrect ? `<button class="btn btn-sm btn-secondary crisis-retry" onclick="App.retryCrisis()">↺ Try a different approach</button>` : `<div class="crisis-xp-bonus" style="color:${color}">+25 XP Bonus for correct resolution!</div>`}
+      </div>
+    `;
+    outcomeEl.classList.remove('hidden');
+
+    if (isCorrect) {
+      const prog = state.progress[currentPersona];
+      if (prog) { prog.xp = (prog.xp || 0) + 25; saveState(); }
+      showToast('🚨', 'Incident Resolved!');
+    }
+  }
+
+  function retryCrisis() {
+    renderStep(currentStepIndex);
+  }
+
+  function renderHotfix(stage, step) {
+    const color = PERSONA_META[currentPersona]?.color || '#3fb950';
+
+    const stepsHtml = (step.steps || []).map((s, i) => `
+      <div class="hotfix-step" id="hotfix-step-${i}">
+        <div class="hotfix-step-num">${i + 1}</div>
+        <div class="hotfix-step-body">
+          <code class="hotfix-cmd">${escHtml(s.cmd)}</code>
+          <div class="hotfix-desc">${escHtml(s.desc)}</div>
+        </div>
+        <button class="hotfix-run btn btn-sm" id="hotfix-btn-${i}"
+                onclick="App.runHotfixStep(${i})" style="border-color:${color};color:${color}">
+          Run ▶
+        </button>
+      </div>
+    `).join('');
+
+    stage.innerHTML = `
+      <div class="hotfix-card">
+        <div class="hotfix-banner">
+          <span class="hotfix-fire">🔥</span>
+          <div>
+            <div class="hotfix-label">HOTFIX RUNBOOK</div>
+            <h3 class="hotfix-title">${escHtml(step.title)}</h3>
+          </div>
+        </div>
+        <div class="hotfix-scenario">${escHtml(step.scenario)}</div>
+        <div class="hotfix-steps">${stepsHtml}</div>
+        <div class="hotfix-outcome hidden" id="hotfix-outcome">
+          <div class="hotfix-outcome-inner">
+            <div class="hotfix-outcome-icon">✅</div>
+            <p>${escHtml(step.outcome)}</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function runHotfixStep(idx) {
+    const step = currentLevelData.steps[currentStepIndex];
+    const s = (step.steps || [])[idx];
+    if (!s) return;
+
+    const btn  = document.getElementById(`hotfix-btn-${idx}`);
+    const row  = document.getElementById(`hotfix-step-${idx}`);
+    if (btn)  { btn.textContent = '✓'; btn.disabled = true; btn.style.color = 'var(--green)'; btn.style.borderColor = 'var(--green)'; }
+    if (row)  row.classList.add('hotfix-done');
+
+    Terminal.print('cmd', s.cmd);
+
+    // Check if all steps done
+    const total = step.steps.length;
+    const doneCount = document.querySelectorAll('.hotfix-done').length;
+    if (doneCount >= total) {
+      document.getElementById('hotfix-outcome').classList.remove('hidden');
+      showToast('🔥', 'Hotfix Complete!');
+    }
+  }
+
+  // ══════════════════════════════════════════════
   //  INTERACTION HANDLERS
   // ══════════════════════════════════════════════
 
@@ -1300,6 +1446,27 @@ const App = (() => {
     modal.classList.remove('hidden');
   }
 
+  function goToMap() {
+    closeModal('modal-levelcomplete');
+    showScreen('worldmap');
+  }
+
+  function promptRestartLesson() {
+    const name = currentLevelData?.title || 'this lesson';
+    document.getElementById('modal-restart-lesson-name').textContent =
+      `Reset "${name}" — your step progress resets to the beginning. Overall XP and other completed lessons are unaffected.`;
+    document.getElementById('modal-restart-lesson').classList.remove('hidden');
+  }
+
+  function confirmRestartLesson() {
+    closeModal('modal-restart-lesson');
+    quizAnswered    = {};
+    completedActions = {};
+    stagedFiles     = [];
+    challengeCompleted = {};
+    renderStep(0);
+  }
+
   function onLevelCompleteContinue() {
     document.getElementById('modal-levelcomplete').classList.add('hidden');
 
@@ -1521,7 +1688,11 @@ const App = (() => {
     onLevelCompleteContinue, closeModal,
     onTerminalCommand, onChallengeAction,
     resolveConflict, submitConflictResolution,
-    resetGame, confirmReset
+    resetGame, confirmReset,
+    goToMap,
+    promptRestartLesson, confirmRestartLesson,
+    selectCrisisChoice, retryCrisis,
+    runHotfixStep
   };
 })();
 

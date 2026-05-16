@@ -174,6 +174,7 @@
           <div class="lesson-badge" id="lesson-badge">🌱</div>
           <h3 id="lesson-title">Lesson Title</h3>
           <div class="lesson-xp-pill" id="lesson-xp-pill">+100 XP</div>
+          <button class="btn-restart-lesson" onclick="App.promptRestartLesson()" title="Restart this lesson from the beginning">↺ Restart</button>
         </div>
         <div class="lesson-progress-steps" id="lesson-steps">
           <!-- Populated by JS -->
@@ -300,7 +301,7 @@
     <div id="modal-achievements" class="modal-achievements"></div>
     <div class="modal-actions">
       <button class="btn btn-primary" onclick="App.onLevelCompleteContinue()">Continue →</button>
-      <button class="btn btn-ghost" onclick="App.showScreen('worldmap')">Back to Map</button>
+      <button class="btn btn-ghost" onclick="App.goToMap()">Back to Map</button>
     </div>
   </div>
 </div>
@@ -333,6 +334,19 @@
   </div>
 </div>
 
+<!-- Restart Lesson Modal -->
+<div id="modal-restart-lesson" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-icon">↺</div>
+    <h2>Restart Lesson?</h2>
+    <p id="modal-restart-lesson-name">This will reset your progress for this lesson only. Your overall XP and other completed lessons are unaffected.</p>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="App.confirmRestartLesson()">Restart Lesson</button>
+      <button class="btn btn-ghost" onclick="App.closeModal('modal-restart-lesson')">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- IDE Simulation Modal -->
 <div id="modal-ide" class="modal-overlay hidden">
   <div class="modal-box modal-fullish">
@@ -343,6 +357,7 @@
 
 <script src="js/data.js"></script>
 <script src="js/data-innovator.js"></script>
+<script src="js/data-practical.js"></script>
 <script src="js/visualizer.js"></script>
 <script src="js/terminal.js"></script>
 <script src="js/app.js"></script>
