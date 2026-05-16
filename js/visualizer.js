@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════
-//  GitQuest — Git Graph Visualizer (SVG)
+//  GitQuest — Git Graph Visualizer v2 (SVG)
 // ═══════════════════════════════════════════════
 
 const GitVisualizer = (() => {
@@ -9,250 +9,415 @@ const GitVisualizer = (() => {
     '#e3b341', '#f85149', '#79c0ff', '#d2a8ff'
   ];
 
-  const NODE_R = 12;
-  const LANE_W = 44;
-  const ROW_H  = 52;
-  const PAD_X  = 60;
-  const PAD_Y  = 40;
+  const NODE_R       = 15;
+  const LANE_W       = 52;
+  const ROW_H        = 66;
+  const LABEL_ZONE   = 96;   // left reserved for branch-name pills
+  const MSG_PAD      = 20;   // gap between last lane and commit messages
+  const TOP_PAD      = 44;
+  const BOTTOM_PAD   = 24;
 
-  let currentState = null;
+  let _tooltip = null;
 
+  // ── tooltip singleton ──────────────────────────
+  function getTooltip() {
+    if (!_tooltip) {
+      _tooltip = document.createElement('div');
+      _tooltip.className = 'git-tooltip';
+      document.body.appendChild(_tooltip);
+    }
+    return _tooltip;
+  }
+
+  function positionTooltip(e) {
+    const tt = getTooltip();
+    const x = Math.min(e.clientX + 14, window.innerWidth - 210);
+    const y = Math.max(e.clientY - 14, 8);
+    tt.style.left = x + 'px';
+    tt.style.top  = y + 'px';
+  }
+
+  // ── main render ────────────────────────────────
   function render(svgEl, gitState, persona) {
     if (!svgEl || !gitState) return;
-    currentState = gitState;
 
-    const svg = svgEl;
-    svg.innerHTML = '';
+    svgEl.innerHTML = '';
+    const tt = getTooltip();
+    tt.style.display = 'none';
 
     const commits = gitState.commits || [];
     if (commits.length === 0) {
-      renderEmpty(svg, persona);
+      renderEmpty(svgEl, persona);
       return;
     }
 
-    // Assign lanes (columns) to branches
-    const branchLane = {};
-    let nextLane = 0;
-    const laneColors = {};
+    // ── lane assignment ──
+    const branchLane  = {};
+    const laneColors  = {};
+    let   nextLane    = 0;
 
     commits.forEach(c => {
       if (c.branch && branchLane[c.branch] === undefined) {
-        branchLane[c.branch] = nextLane;
-        laneColors[c.branch] = BRANCH_COLORS[nextLane % BRANCH_COLORS.length];
+        branchLane[c.branch]  = nextLane;
+        laneColors[c.branch]  = BRANCH_COLORS[nextLane % BRANCH_COLORS.length];
         nextLane++;
       }
     });
 
-    // Build id → commit map
     const commitMap = {};
     commits.forEach(c => { commitMap[c.id] = c; });
 
-    // Assign rows (top = newest)
     const rows = {};
     commits.forEach((c, i) => { rows[c.id] = i; });
 
-    const totalH = commits.length * ROW_H + PAD_Y * 2;
-    const totalW = Math.max(nextLane * LANE_W + PAD_X * 2, 260);
+    const numLanes = Math.max(nextLane, 1);
+    const graphW   = numLanes * LANE_W;
+    const maxMsgLen = 30;
+    const totalW   = LABEL_ZONE + graphW + MSG_PAD + maxMsgLen * 7 + 20;
+    const totalH   = commits.length * ROW_H + TOP_PAD + BOTTOM_PAD;
 
-    svg.setAttribute('viewBox', `0 0 ${totalW} ${totalH}`);
-    svg.setAttribute('height', totalH);
+    svgEl.setAttribute('viewBox', `0 0 ${totalW} ${totalH}`);
+    svgEl.setAttribute('height', Math.min(totalH, 440));
 
-    const defs = svgEl.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    svg.appendChild(defs);
+    // ── defs: glow filter + per-color arrowhead markers ──
+    const defs = mkSvg('defs', svgEl);
 
-    // Draw edges first (so nodes render on top)
-    const edgeGroup = createSVGEl('g', svg);
+    // Glow filter
+    const filt = mkSvg('filter', defs, { id: 'gq-glow', x: '-60%', y: '-60%', width: '220%', height: '220%' });
+    mkSvg('feGaussianBlur', filt, { in: 'SourceGraphic', stdDeviation: '3.5', result: 'blur' });
+    const fm = mkSvg('feMerge', filt);
+    mkSvg('feMergeNode', fm, { in: 'blur' });
+    mkSvg('feMergeNode', fm, { in: 'SourceGraphic' });
 
-    commits.forEach(c => {
-      const cx = PAD_X + branchLane[c.branch] * LANE_W;
-      const cy = PAD_Y + rows[c.id] * ROW_H;
+    // Outer-glow for HEAD ring
+    const filtRing = mkSvg('filter', defs, { id: 'gq-ring', x: '-80%', y: '-80%', width: '260%', height: '260%' });
+    mkSvg('feGaussianBlur', filtRing, { in: 'SourceGraphic', stdDeviation: '5', result: 'blur' });
+    const fmr = mkSvg('feMerge', filtRing);
+    mkSvg('feMergeNode', fmr, { in: 'blur' });
+
+    // Arrow markers per branch color
+    Object.entries(laneColors).forEach(([branch, color]) => {
+      const mid = `gq-arrow-${branch.replace(/[^a-z0-9]/gi, '_')}`;
+      const mk = mkSvg('marker', defs, {
+        id: mid,
+        markerWidth: '7', markerHeight: '7',
+        refX: '5', refY: '3.5',
+        orient: 'auto'
+      });
+      mkSvg('path', mk, { d: 'M 0 0 L 7 3.5 L 0 7 z', fill: color, opacity: '0.75' });
+    });
+
+    const originX = LABEL_ZONE;
+
+    // ── faint vertical lane tracks ──
+    const tracks = mkSvg('g', svgEl, { opacity: '0.1' });
+    for (let l = 0; l < numLanes; l++) {
+      const lx = originX + l * LANE_W + LANE_W / 2;
+      mkSvg('line', tracks, {
+        x1: lx, y1: TOP_PAD - 12,
+        x2: lx, y2: totalH - BOTTOM_PAD + 12,
+        stroke: BRANCH_COLORS[l % BRANCH_COLORS.length],
+        'stroke-width': '2',
+        'stroke-dasharray': '4,6'
+      });
+    }
+
+    // ── edges ──
+    const edgeG = mkSvg('g', svgEl);
+
+    commits.forEach((c, idx) => {
+      const cx    = originX + branchLane[c.branch] * LANE_W + LANE_W / 2;
+      const cy    = TOP_PAD + rows[c.id] * ROW_H;
       const color = laneColors[c.branch] || BRANCH_COLORS[0];
+      const mid   = `gq-arrow-${c.branch.replace(/[^a-z0-9]/gi, '_')}`;
 
       if (c.parent && commitMap[c.parent]) {
-        const p = commitMap[c.parent];
-        const px = PAD_X + branchLane[p.branch] * LANE_W;
-        const py = PAD_Y + rows[p.id] * ROW_H;
-        drawEdge(edgeGroup, cx, cy, px, py, color, false);
+        const p   = commitMap[c.parent];
+        const px  = originX + branchLane[p.branch] * LANE_W + LANE_W / 2;
+        const py  = TOP_PAD + rows[p.id] * ROW_H;
+        drawEdge(edgeG, cx, cy + NODE_R, px, py - NODE_R, color, false, mid, idx);
       }
 
       if (c.merge && commitMap[c.merge]) {
-        const m = commitMap[c.merge];
-        const mx = PAD_X + branchLane[m.branch] * LANE_W;
-        const my = PAD_Y + rows[m.id] * ROW_H;
-        const mergeColor = laneColors[m.branch] || BRANCH_COLORS[1];
-        drawEdge(edgeGroup, cx, cy, mx, my, mergeColor, true);
+        const m      = commitMap[c.merge];
+        const mx     = originX + branchLane[m.branch] * LANE_W + LANE_W / 2;
+        const my     = TOP_PAD + rows[m.id] * ROW_H;
+        const mcol   = laneColors[m.branch] || BRANCH_COLORS[1];
+        const mmid   = `gq-arrow-${m.branch.replace(/[^a-z0-9]/gi, '_')}`;
+        drawEdge(edgeG, cx, cy + NODE_R, mx, my - NODE_R, mcol, true, mmid, idx);
       }
     });
 
-    // Draw nodes
-    const nodeGroup = createSVGEl('g', svg);
+    // ── nodes ──
+    const nodeG = mkSvg('g', svgEl);
 
     commits.forEach((c, i) => {
-      const cx = PAD_X + branchLane[c.branch] * LANE_W;
-      const cy = PAD_Y + rows[c.id] * ROW_H;
+      const cx    = originX + branchLane[c.branch] * LANE_W + LANE_W / 2;
+      const cy    = TOP_PAD + rows[c.id] * ROW_H;
       const color = laneColors[c.branch] || BRANCH_COLORS[0];
-      const isHEAD = gitState.HEAD === c.branch && gitState.branches[c.branch] === c.id;
+      const isHEAD = gitState.HEAD === c.branch
+                  && gitState.branches
+                  && gitState.branches[c.branch] === c.id;
 
-      // Node circle
-      const circle = createSVGEl('circle', nodeGroup, {
+      // Outer glow ring for HEAD
+      if (isHEAD) {
+        const ring = mkSvg('circle', nodeG, {
+          cx, cy, r: NODE_R + 8,
+          fill: 'none',
+          stroke: color,
+          'stroke-width': '3',
+          opacity: '0.25',
+          filter: 'url(#gq-ring)'
+        });
+        ring.style.animation = 'gq-pulse 2.2s ease-in-out infinite';
+      }
+
+      // Main circle
+      const circle = mkSvg('circle', nodeG, {
         cx, cy, r: NODE_R,
-        fill: isHEAD ? color : '#161b22',
+        fill: isHEAD ? color : 'var(--bg2, #161b22)',
         stroke: color,
-        'stroke-width': isHEAD ? 0 : 2.5,
-        style: 'cursor:pointer'
+        'stroke-width': isHEAD ? '0' : '2.5',
+        style: 'cursor:pointer',
+        filter: isHEAD ? 'url(#gq-glow)' : 'none'
       });
 
-      // Animate in
+      // Staggered pop-in animation
       circle.style.opacity = '0';
-      circle.style.transform = `scale(0)`;
+      circle.style.transform = `scale(0.2)`;
       circle.style.transformOrigin = `${cx}px ${cy}px`;
+      circle.style.transition = `opacity 0.28s ${i * 0.055}s, transform 0.28s ${i * 0.055}s cubic-bezier(.34,1.56,.64,1)`;
       requestAnimationFrame(() => {
-        circle.style.transition = `opacity 0.3s ${i * 0.06}s, transform 0.3s ${i * 0.06}s`;
         circle.style.opacity = '1';
         circle.style.transform = 'scale(1)';
       });
 
-      // HEAD dot
+      // Inner dot (HEAD marker)
       if (isHEAD) {
-        createSVGEl('circle', nodeGroup, {
-          cx, cy, r: 4,
-          fill: '#000'
+        mkSvg('circle', nodeG, { cx, cy, r: 5, fill: '#000000' });
+      }
+
+      // Short-SHA ring label (non-HEAD)
+      if (!isHEAD) {
+        const shaRing = mkSvg('text', nodeG, {
+          x: cx, y: cy + 1,
+          fill: color,
+          'font-size': '8',
+          'font-weight': '700',
+          'font-family': 'JetBrains Mono, monospace',
+          'text-anchor': 'middle',
+          'dominant-baseline': 'middle',
+          'pointer-events': 'none'
         });
+        shaRing.textContent = c.id.slice(0, 4);
       }
 
       // Tag badge
       if (c.tag) {
-        const tagBg = createSVGEl('rect', nodeGroup, {
-          x: cx + NODE_R + 3,
-          y: cy - 10,
-          width: c.tag.length * 7.2 + 10,
-          height: 18,
-          rx: 9,
-          fill: '#e3b341',
-          opacity: 0.9
+        const tw = c.tag.length * 6.8 + 14;
+        mkSvg('rect', nodeG, {
+          x: cx + NODE_R + 5, y: cy - 10,
+          width: tw, height: 18, rx: 9,
+          fill: '#e3b341', opacity: '0.92'
         });
-        const tagTxt = createSVGEl('text', nodeGroup, {
-          x: cx + NODE_R + 8,
-          y: cy + 5,
+        const tl = mkSvg('text', nodeG, {
+          x: cx + NODE_R + 12, y: cy + 5,
           fill: '#000',
-          'font-size': '10',
-          'font-weight': '700',
+          'font-size': '9.5', 'font-weight': '800',
           'font-family': 'JetBrains Mono, monospace'
         });
-        tagTxt.textContent = c.tag;
+        tl.textContent = c.tag;
       }
 
-      // Commit message label
-      const labelX = Math.max(...Object.values(branchLane)) * LANE_W + PAD_X + NODE_R + 20;
-      const label = createSVGEl('text', nodeGroup, {
-        x: labelX,
-        y: cy + 4,
+      // Commit message (right of graph)
+      const msgX = originX + numLanes * LANE_W + MSG_PAD;
+      const msgEl = mkSvg('text', nodeG, {
+        x: msgX, y: cy - 3,
         fill: isHEAD ? '#e6edf3' : '#8b949e',
         'font-size': '11',
         'font-family': 'JetBrains Mono, monospace',
-        'font-weight': isHEAD ? '600' : '400'
+        'font-weight': isHEAD ? '700' : '400',
+        'dominant-baseline': 'auto'
       });
-      const maxLen = 26;
-      label.textContent = c.msg.length > maxLen ? c.msg.slice(0, maxLen) + '…' : c.msg;
+      msgEl.textContent = c.msg.length > maxMsgLen
+        ? c.msg.slice(0, maxMsgLen - 1) + '…'
+        : c.msg;
 
-      // SHA label
-      const shaLabel = createSVGEl('text', nodeGroup, {
-        x: labelX,
-        y: cy + 17,
+      const shaEl = mkSvg('text', nodeG, {
+        x: msgX, y: cy + 13,
         fill: '#484f58',
         'font-size': '9',
         'font-family': 'JetBrains Mono, monospace'
       });
-      shaLabel.textContent = c.id.slice(0, 7);
+      shaEl.textContent = c.id.slice(0, 7);
+
+      // Hover tooltip
+      const hitZone = mkSvg('circle', nodeG, {
+        cx, cy, r: NODE_R + 4,
+        fill: 'transparent',
+        style: 'cursor:pointer'
+      });
+      hitZone.addEventListener('mouseenter', e => {
+        const tt = getTooltip();
+        tt.innerHTML = `
+          <div class="gq-tt-hash">${escHtml(c.id.slice(0, 7))}</div>
+          <div class="gq-tt-msg">${escHtml(c.msg)}</div>
+          <div class="gq-tt-branch" style="color:${color}">⎇ ${escHtml(c.branch)}${isHEAD ? ' · <b>HEAD</b>' : ''}</div>
+          ${c.tag ? `<div class="gq-tt-tag">🏷 ${escHtml(c.tag)}</div>` : ''}
+          ${c.parent ? `<div class="gq-tt-parent">parent: ${escHtml(c.parent.slice(0,7))}</div>` : ''}
+        `;
+        tt.style.display = 'block';
+        positionTooltip(e);
+      });
+      hitZone.addEventListener('mousemove', positionTooltip);
+      hitZone.addEventListener('mouseleave', () => {
+        getTooltip().style.display = 'none';
+      });
     });
 
-    // Draw branch labels (right side)
-    const labelGroup = createSVGEl('g', svg);
+    // ── branch label pills (left zone) ──
+    const labelG = mkSvg('g', svgEl);
     const branches = gitState.branches || {};
+
     Object.entries(branches).forEach(([name, targetId]) => {
       if (!commitMap[targetId]) return;
-      const tc = commitMap[targetId];
-      const ty = PAD_Y + rows[tc.id] * ROW_H;
-      const tx = 4;
-      const isCurrentBranch = gitState.HEAD === name;
+      const tc   = commitMap[targetId];
+      const ty   = TOP_PAD + rows[tc.id] * ROW_H;
+      const isCur = gitState.HEAD === name;
       const color = laneColors[tc.branch] || BRANCH_COLORS[0];
 
-      const pill = createSVGEl('rect', labelGroup, {
-        x: tx - 2,
-        y: ty - 9,
-        width: name.length * 6.4 + 14,
-        height: 17,
-        rx: 8,
-        fill: isCurrentBranch ? color : 'none',
-        stroke: color,
-        'stroke-width': 1,
-        opacity: 0.85
+      const maxPillW = LABEL_ZONE - 12;
+      const pillW    = Math.min(name.length * 6.4 + 16, maxPillW);
+      const pillX    = LABEL_ZONE - pillW - 6;
+
+      // Connector dashes to node
+      const nodeX = originX + branchLane[tc.branch] * LANE_W + LANE_W / 2;
+      mkSvg('line', labelG, {
+        x1: pillX + pillW, y1: ty,
+        x2: nodeX - NODE_R - 1, y2: ty,
+        stroke: color, 'stroke-width': '1',
+        opacity: '0.35', 'stroke-dasharray': '3,3'
       });
 
-      const branchLabel = createSVGEl('text', labelGroup, {
-        x: tx + 5,
-        y: ty + 4,
-        fill: isCurrentBranch ? '#000' : color,
-        'font-size': '9',
-        'font-weight': '600',
-        'font-family': 'JetBrains Mono, monospace'
+      // Pill background
+      mkSvg('rect', labelG, {
+        x: pillX, y: ty - 10,
+        width: pillW, height: 20, rx: 10,
+        fill: isCur ? color : 'var(--bg2, #161b22)',
+        stroke: color, 'stroke-width': '1.5',
+        opacity: isCur ? '0.95' : '0.85'
       });
-      branchLabel.textContent = name;
+
+      // Pill text
+      const bl = mkSvg('text', labelG, {
+        x: pillX + pillW / 2, y: ty + 1,
+        fill: isCur ? '#000' : color,
+        'font-size': '8.5', 'font-weight': '700',
+        'font-family': 'JetBrains Mono, monospace',
+        'text-anchor': 'middle', 'dominant-baseline': 'middle'
+      });
+      bl.textContent = name.length > 14 ? name.slice(0, 13) + '…' : name;
+
+      // HEAD arrow indicator
+      if (isCur) {
+        const hy = ty - 22;
+        mkSvg('text', labelG, {
+          x: pillX + pillW / 2, y: hy,
+          fill: '#e3b341', 'font-size': '7.5', 'font-weight': '800',
+          'font-family': 'JetBrains Mono, monospace', 'text-anchor': 'middle'
+        }).textContent = '▼ HEAD';
+      }
     });
 
-    // Update legend
     updateLegend(gitState, branchLane, laneColors);
   }
 
-  function drawEdge(parent, x1, y1, x2, y2, color, isDashed) {
-    const path = createSVGEl('path', parent, {
+  // ── edge drawing ──────────────────────────────
+  function drawEdge(parent, x1, y1, x2, y2, color, isDashed, markerId, idx) {
+    const sameLane = Math.abs(x1 - x2) < 6;
+    let d;
+    if (sameLane) {
+      d = `M ${x1} ${y1} L ${x2} ${y2}`;
+    } else {
+      // Nice S-curve for cross-lane merge edges
+      const ctl1y = y1 + (y2 - y1) * 0.35;
+      const ctl2y = y1 + (y2 - y1) * 0.65;
+      d = `M ${x1} ${y1} C ${x1} ${ctl1y}, ${x2} ${ctl2y}, ${x2} ${y2}`;
+    }
+
+    const path = mkSvg('path', parent, {
+      d,
       stroke: color,
       'stroke-width': '2',
       fill: 'none',
-      'stroke-dasharray': isDashed ? '5,3' : 'none',
-      opacity: 0.7
+      opacity: '0.6',
+      'stroke-dasharray': isDashed ? '7,4' : 'none',
+      'marker-end': `url(#${markerId})`
     });
 
-    // Curved path for cross-lane connections
-    if (Math.abs(x1 - x2) > 5) {
-      const midY = (y1 + y2) / 2;
-      path.setAttribute('d', `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`);
-    } else {
-      path.setAttribute('d', `M ${x1} ${y1} L ${x2} ${y2}`);
-    }
+    // Animate draw-on
+    try {
+      const len = path.getTotalLength();
+      path.style.strokeDasharray = `${len} ${len}`;
+      path.style.strokeDashoffset = `${len}`;
+      path.style.transition = `stroke-dashoffset 0.45s ${idx * 0.04 + 0.05}s ease`;
+      requestAnimationFrame(() => { path.style.strokeDashoffset = '0'; });
+    } catch(e) { /* no-op if getTotalLength unavailable */ }
   }
 
+  // ── empty state ───────────────────────────────
   function renderEmpty(svg, persona) {
-    const colors = { beginner: '#3fb950', intermediate: '#58a6ff', expert: '#f0883e' };
+    const colors = {
+      beginner: '#3fb950', intermediate: '#58a6ff',
+      expert: '#f0883e',   innovator: '#d2a8ff'
+    };
     const color = colors[persona] || '#3fb950';
 
-    svg.setAttribute('viewBox', '0 0 260 160');
-    svg.setAttribute('height', '160');
+    svg.setAttribute('viewBox', '0 0 300 180');
+    svg.setAttribute('height', '180');
 
-    const g = createSVGEl('g', svg);
+    const defs = mkSvg('defs', svg);
+    const f = mkSvg('filter', defs, { id: 'gq-empty-glow' });
+    mkSvg('feGaussianBlur', f, { in: 'SourceGraphic', stdDeviation: '4', result: 'b' });
+    const fm2 = mkSvg('feMerge', f);
+    mkSvg('feMergeNode', fm2, { in: 'b' });
+    mkSvg('feMergeNode', fm2, { in: 'SourceGraphic' });
 
-    // Placeholder node
-    createSVGEl('circle', g, { cx: 130, cy: 60, r: 16, fill: 'none', stroke: color, 'stroke-width': 2, 'stroke-dasharray': '5,3' });
+    const g = mkSvg('g', svg);
 
-    const txt = createSVGEl('text', g, {
-      x: 130, y: 65,
-      fill: color,
-      'font-size': '12',
-      'text-anchor': 'middle',
+    // Outer dashed orbit
+    const orbit = mkSvg('circle', g, {
+      cx: 150, cy: 84, r: 30,
+      fill: 'none', stroke: color,
+      'stroke-width': '1.2', 'stroke-dasharray': '5,5',
+      opacity: '0.35', filter: 'url(#gq-empty-glow)'
+    });
+    orbit.style.animation = 'gq-spin 10s linear infinite';
+
+    // Inner filled node
+    mkSvg('circle', g, {
+      cx: 150, cy: 84, r: 16,
+      fill: 'none', stroke: color,
+      'stroke-width': '2', opacity: '0.7',
+      filter: 'url(#gq-empty-glow)'
+    });
+
+    const sym = mkSvg('text', g, {
+      x: 150, y: 90,
+      fill: color, 'font-size': '16', 'text-anchor': 'middle',
+      'font-family': 'Inter, sans-serif', 'font-weight': '700'
+    });
+    sym.textContent = '⎇';
+
+    const sub = mkSvg('text', g, {
+      x: 150, y: 130,
+      fill: '#8b949e', 'font-size': '11', 'text-anchor': 'middle',
       'font-family': 'Inter, sans-serif'
     });
-    txt.textContent = 'git init';
-
-    const sub = createSVGEl('text', g, {
-      x: 130, y: 105,
-      fill: '#484f58',
-      'font-size': '10',
-      'text-anchor': 'middle',
-      'font-family': 'Inter, sans-serif'
-    });
-    sub.textContent = 'Graph will appear as you progress';
+    sub.textContent = 'Graph loads as you progress';
   }
 
+  // ── legend ────────────────────────────────────
   function updateLegend(gitState, branchLane, laneColors) {
     const legend = document.getElementById('git-legend');
     if (!legend) return;
@@ -262,9 +427,14 @@ const GitVisualizer = (() => {
     Object.entries(branches).forEach(([name]) => {
       if (branchLane[name] === undefined) return;
       const color = laneColors[name] || '#3fb950';
+      const isHead = gitState.HEAD === name;
       const item = document.createElement('div');
       item.className = 'legend-item';
-      item.innerHTML = `<span class="legend-dot" style="background:${color}"></span>${name}`;
+      item.innerHTML = `
+        <span class="legend-dot" style="background:${color};${isHead ? `box-shadow:0 0 7px ${color}` : ''}"></span>
+        <span>${escHtml(name)}</span>
+        ${isHead ? '<span class="legend-head-badge">HEAD</span>' : ''}
+      `;
       legend.appendChild(item);
     });
 
@@ -272,17 +442,23 @@ const GitVisualizer = (() => {
       Object.keys(gitState.tags).forEach(tag => {
         const item = document.createElement('div');
         item.className = 'legend-item';
-        item.innerHTML = `<span class="legend-dot" style="background:#e3b341"></span>${tag}`;
+        item.innerHTML = `<span class="legend-dot" style="background:#e3b341"></span>🏷 ${escHtml(tag)}`;
         legend.appendChild(item);
       });
     }
   }
 
-  function createSVGEl(tag, parent, attrs = {}) {
+  // ── helpers ───────────────────────────────────
+  function mkSvg(tag, parent, attrs = {}) {
     const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
     Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
     parent.appendChild(el);
     return el;
+  }
+
+  function escHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
   function animateNewCommit(svgEl, gitState, persona) {
