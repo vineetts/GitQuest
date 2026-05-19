@@ -78,7 +78,18 @@ const Terminal = (() => {
   }
 
   function execute(rawCmd) {
+    // Handle compound commands (cmd1 && cmd2)
+    if (rawCmd.includes(' && ')) {
+      // Check practice task with FULL compound string first
+      setTimeout(() => { if (window.App?.checkTerminalTask) App.checkTerminalTask(rawCmd); }, 20);
+      // Then execute each part individually in the terminal
+      rawCmd.split(' && ').forEach(part => execute(part.trim()));
+      return;
+    }
+
     print('cmd', `${PROMPT_CWD} (${currentBranch}) $ ${rawCmd}`);
+    // Notify terminal-practice tracker for ALL commands (git and shell)
+    setTimeout(() => { if (window.App?.checkTerminalTask) App.checkTerminalTask(rawCmd); }, 20);
 
     const parts = rawCmd.trim().split(/\s+/);
     const cmd = parts[0];
@@ -89,7 +100,48 @@ const Terminal = (() => {
     if (cmd === 'help')  { showHelp(); return; }
     if (cmd === 'pwd')   { print('out', PROMPT_CWD); return; }
     if (cmd === 'ls')    { print('out', workingFiles.join('  ')); return; }
-    if (cmd === 'echo')  { print('out', parts.slice(1).join(' ')); return; }
+    if (cmd === 'echo')  {
+      const rest = parts.slice(1).join(' ');
+      // Simulate echo >> file (append redirect)
+      const appendMatch = rest.match(/^"?([^"]*)"?\s*>>\s*(\S+)$/);
+      if (appendMatch) {
+        if (!workingFiles.includes(appendMatch[2])) workingFiles.push(appendMatch[2]);
+        print('out', `(appended to ${appendMatch[2]})`);
+      } else {
+        print('out', rest.replace(/^["']|["']$/g, ''));
+      }
+      return;
+    }
+    if (cmd === 'mkdir') {
+      const dir = parts[1] || 'new-folder';
+      print('out', `Created directory: ${dir}/`);
+      return;
+    }
+    if (cmd === 'cd')    {
+      const dir = parts[1] || '~';
+      print('out', `(changed to ${dir})`);
+      return;
+    }
+    if (cmd === 'touch') {
+      const files = parts.slice(1);
+      files.forEach(f => { if (!workingFiles.includes(f)) workingFiles.push(f); });
+      print('out', files.length ? `Created: ${files.join(', ')}` : '(no filename given)');
+      return;
+    }
+    if (cmd === 'cat') {
+      const file = parts[1];
+      if (file && workingFiles.includes(file)) {
+        print('out', `[contents of ${file}]`);
+      } else {
+        print('err', `cat: ${file || ''}: No such file or directory`);
+      }
+      return;
+    }
+    if (cmd === 'nano' || cmd === 'vim' || cmd === 'vi') {
+      const file = parts[1] || 'file';
+      print('info', `(Simulated: ${cmd} ${file} — edit the file in the conflict resolver above)`);
+      return;
+    }
 
     if (cmd !== 'git') {
       print('err', `command not found: ${cmd}. Type 'help' for git commands.`);
