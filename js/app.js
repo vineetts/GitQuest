@@ -412,9 +412,10 @@ const App = (() => {
       case 'conflictresolver': renderConflictResolver(stage, step); break;
       case 'scenario':      renderScenario(stage, step); break;
       case 'challenge':     renderChallenge(stage, step); break;
-      case 'crisis':        renderCrisis(stage, step); break;
-      case 'hotfix':        renderHotfix(stage, step); break;
-      default:              stage.innerHTML = `<p>${step.type} step</p>`; break;
+      case 'crisis':            renderCrisis(stage, step); break;
+      case 'hotfix':            renderHotfix(stage, step); break;
+      case 'terminal-practice': renderTerminalPractice(stage, step); break;
+      default:                  stage.innerHTML = `<p>${step.type} step</p>`; break;
     }
 
     // Update git graph for this step
@@ -525,12 +526,29 @@ const App = (() => {
       </div>
     ` : '';
 
+    // Life-stage personalised example (from LIFESTAGE_EXAMPLES in data-commands.js)
+    const lifeStage = state.lifeStage || 'working';
+    const levelId   = currentLevelData?.id || '';
+    const lsKey     = `${currentPersona}_${levelId}_${currentStepIndex}`;
+    const lsText    = (typeof LIFESTAGE_EXAMPLES !== 'undefined')
+      ? LIFESTAGE_EXAMPLES[lifeStage]?.[lsKey]
+      : null;
+    const lsIcons   = { school: '🏫', uni: '🎓', learner: '🌱', working: '💼' };
+    const lsLabels  = { school: 'In Your Class', uni: 'In Your Team', learner: 'In Your Projects', working: 'In Your Job' };
+    const lsExampleHtml = lsText ? `
+      <div class="ls-example-box">
+        <div class="ls-example-badge">${lsIcons[lifeStage] || '👤'} ${lsLabels[lifeStage] || 'Your World'}</div>
+        <p class="ls-example-text">${escHtml(lsText)}</p>
+      </div>
+    ` : '';
+
     stage.innerHTML = `
       <div class="concept-box">
         <h3>${step.icon || '📚'} ${step.title}</h3>
         <div class="concept-text">${step.body.replace(/\n/g, '<br>')}</div>
       </div>
       ${diagramHtml}
+      ${lsExampleHtml}
     `;
   }
 
@@ -1152,6 +1170,110 @@ const App = (() => {
   }
 
   // ══════════════════════════════════════════════
+  // ══════════════════════════════════════════════
+  //  TERMINAL PRACTICE RENDERER
+  // ══════════════════════════════════════════════
+
+  let terminalTasks     = [];
+  let terminalTasksDone = [];
+
+  function renderTerminalPractice(stage, step) {
+    terminalTasks     = step.tasks || [];
+    terminalTasksDone = new Array(terminalTasks.length).fill(false);
+
+    const color     = PERSONA_META[currentPersona]?.color || '#3fb950';
+    const lifeStage = state.lifeStage || 'working';
+    const context   = step.contexts?.[lifeStage] || step.context || '';
+
+    const tasksHtml = terminalTasks.map((t, i) => `
+      <div class="tp-task" id="tp-task-${i}">
+        <div class="tp-task-check" id="tp-check-${i}">⬜</div>
+        <div class="tp-task-body">
+          <div class="tp-task-instruction">${escHtml(t.instruction)}</div>
+          <code class="tp-task-cmd">${escHtml(t.command)}</code>
+          <div class="tp-task-hint hidden" id="tp-hint-${i}">💡 ${escHtml(t.hint || '')}</div>
+          <div class="tp-task-result hidden" id="tp-result-${i}" style="color:var(--green);font-size:.8rem;margin-top:4px">${escHtml(t.successMsg || '✅ Done!')}</div>
+        </div>
+        <button class="btn btn-sm btn-secondary tp-hint-btn" onclick="App.showTPHint(${i})" style="border-color:${color};color:${color}">Hint</button>
+      </div>
+    `).join('');
+
+    stage.innerHTML = `
+      <div class="tp-card">
+        <div class="tp-header">
+          <span class="tp-badge" style="background:${color}20;border:1px solid ${color}40;color:${color}">⌨️ COMMAND PRACTICE</span>
+          <h3 class="tp-title">${escHtml(step.title)}</h3>
+        </div>
+        <div class="tp-context">${escHtml(context)}</div>
+        <div class="tp-pointer">👇 Type each command in the <strong>Terminal tab →</strong></div>
+        <div class="tp-tasks">${tasksHtml}</div>
+        <div class="tp-progress-wrap">
+          <div class="tp-progress-bar" id="tp-progress-bar" style="width:0%;background:${color}"></div>
+        </div>
+        <div id="tp-progress-label" class="tp-progress-label">0 / ${terminalTasks.length} completed</div>
+        <div class="tp-complete hidden" id="tp-complete" style="border-color:${color}40">
+          🎉 All commands completed! You can move to the next step.
+        </div>
+      </div>
+    `;
+
+    // Auto-switch to terminal tab
+    switchVizTab('terminal', document.querySelector('.viz-tab[onclick*="terminal"]'));
+  }
+
+  function checkTerminalTask(rawCmd) {
+    if (!terminalTasks.length) return;
+
+    // Normalise: trim, collapse internal whitespace
+    const norm = rawCmd.trim().replace(/\s+/g, ' ');
+
+    terminalTasks.forEach((task, i) => {
+      if (terminalTasksDone[i]) return;
+      const expected = task.command.trim().replace(/\s+/g, ' ');
+
+      let matched = norm === expected;
+
+      if (!matched && task.acceptPartial) {
+        if (expected.includes(' && ')) {
+          // Compound command: require exact match (already checked above)
+          matched = false;
+        } else {
+          // Simple partial: typed command starts with first 3 words of expected
+          // e.g. `git commit -m "any message"` matches expected `git commit -m "Initial commit"`
+          const prefix = expected.split(' ').slice(0, 3).join(' ');
+          matched = norm.startsWith(prefix);
+        }
+      }
+
+      if (matched) {
+        terminalTasksDone[i] = true;
+        const checkEl  = document.getElementById(`tp-check-${i}`);
+        const resultEl = document.getElementById(`tp-result-${i}`);
+        const taskEl   = document.getElementById(`tp-task-${i}`);
+        if (checkEl)  checkEl.textContent  = '✅';
+        if (resultEl) resultEl.classList.remove('hidden');
+        if (taskEl)   taskEl.classList.add('tp-done');
+
+        const done  = terminalTasksDone.filter(Boolean).length;
+        const total = terminalTasks.length;
+        const bar   = document.getElementById('tp-progress-bar');
+        const label = document.getElementById('tp-progress-label');
+        if (bar)   bar.style.width = `${(done / total) * 100}%`;
+        if (label) label.textContent = `${done} / ${total} completed`;
+
+        if (done === total) {
+          document.getElementById('tp-complete')?.classList.remove('hidden');
+          showToast('⌨️', 'Command Practice Complete!');
+        }
+      }
+    });
+  }
+
+  function showTPHint(i) {
+    document.getElementById(`tp-hint-${i}`)?.classList.remove('hidden');
+  }
+
+  // ══════════════════════════════════════════════
   //  CRISIS & HOTFIX RENDERERS
   // ══════════════════════════════════════════════
 
@@ -1706,6 +1828,7 @@ const App = (() => {
     if (currentLevelData) {
       GitVisualizer.render(document.getElementById('git-svg'), currentLevelData.gitState, currentPersona);
     }
+    // Note: checkTerminalTask is called from terminal.js execute() for ALL commands (git + shell)
   }
 
   function onChallengeAction(action) {
@@ -1818,7 +1941,8 @@ const App = (() => {
     promptResetPath, confirmResetPath, promptResetLevel,
     selectLifeStage,
     selectCrisisChoice, retryCrisis,
-    runHotfixStep
+    runHotfixStep,
+    checkTerminalTask, showTPHint
   };
 })();
 
