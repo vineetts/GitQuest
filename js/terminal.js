@@ -81,7 +81,7 @@ const Terminal = (() => {
     // Handle compound commands (cmd1 && cmd2)
     if (rawCmd.includes(' && ')) {
       // Check practice task with FULL compound string first
-      setTimeout(() => { if (window.App?.checkTerminalTask) App.checkTerminalTask(rawCmd); }, 20);
+      setTimeout(() => { if (typeof App !== 'undefined') App.checkTerminalTask(rawCmd); }, 20);
       // Then execute each part individually in the terminal
       rawCmd.split(' && ').forEach(part => execute(part.trim()));
       return;
@@ -89,7 +89,8 @@ const Terminal = (() => {
 
     print('cmd', `${PROMPT_CWD} (${currentBranch}) $ ${rawCmd}`);
     // Notify terminal-practice tracker for ALL commands (git and shell)
-    setTimeout(() => { if (window.App?.checkTerminalTask) App.checkTerminalTask(rawCmd); }, 20);
+    // Note: window.App is a guard (truthy) but App is the real IIFE reference
+    setTimeout(() => { if (typeof App !== 'undefined') App.checkTerminalTask(rawCmd); }, 20);
 
     const parts = rawCmd.trim().split(/\s+/);
     const cmd = parts[0];
@@ -304,7 +305,7 @@ const Terminal = (() => {
     }
 
     // Update visualizer if game is active
-    if (window.App) {
+    if (typeof App !== 'undefined') {
       App.onTerminalCommand(sub, args, parts);
     }
   }
@@ -375,7 +376,7 @@ const Terminal = (() => {
     print('out', ` ${count} file${count > 1 ? 's' : ''} changed`);
 
     checkChallengeStep('commit');
-    if (window.App) App.awardAchievement('first_commit');
+    if (typeof App !== 'undefined') App.awardAchievement('first_commit');
   }
 
   function gitLog(parts) {
@@ -753,7 +754,7 @@ const Terminal = (() => {
   }
 
   function checkChallengeStep(action) {
-    if (!window.App) return;
+    if (typeof App === 'undefined') return;
     App.onChallengeAction(action);
   }
 
