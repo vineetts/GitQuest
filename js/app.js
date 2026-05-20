@@ -198,19 +198,79 @@ const App = (() => {
       map.parentNode.insertBefore(card, map);
     }
 
+    const color      = PERSONA_META[persona]?.color || '#3fb950';
+    const totalLevels = data.levels.length;
+    const doneCount   = progress.completedLevels.length;
+    const pct         = Math.round((doneCount / totalLevels) * 100);
+
+    // ── Try rich JUNGLE_STORY first ─────────────
+    const jungle    = (typeof JUNGLE_STORY !== 'undefined') ? JUNGLE_STORY[persona] : null;
+    const lifeStageKey = state.lifeStage || 'working';
+
+    if (jungle) {
+      // Life-stage specific data; fallback to 'working' if that life stage has no data
+      const jungleLS = jungle[lifeStageKey] || jungle.working || {};
+      const ch     = (typeof getJungleChapter !== 'undefined')
+                       ? getJungleChapter(persona, progress.completedLevels, lifeStageKey)
+                       : jungleLS.chapters?.[0];
+      const comp   = jungleLS.companion || jungle.working?.companion || { name: 'Guide', role: '', avatar: '🧑‍💻', color };
+
+      // Progress dots — one per chapter
+      const chapterDots = (jungleLS.chapters || []).map(c => {
+        const done = c.levels.every(id => progress.completedLevels.includes(id));
+        const active = c === ch;
+        return `<span class="arc-chapter-dot ${done ? 'done' : active ? 'active' : ''}" style="${active ? `background:${color}` : done ? `background:${color}88` : ''}"></span>`;
+      }).join('');
+
+      // Level progress trail — small emoji dots for each lesson
+      const trailDots = data.levels.map(lvl => {
+        const done = progress.completedLevels.includes(lvl.id);
+        return `<span class="arc-trail-dot ${done ? 'done' : ''}" style="${done ? `background:${color}` : ''}"></span>`;
+      }).join('');
+
+      card.innerHTML = `
+        <div class="story-arc-card jungle-card" style="--arc-color:${color}">
+          <div class="jungle-zone-banner">
+            <span class="jungle-zone-emoji">${jungle.zoneEmoji}</span>
+            <div class="jungle-zone-info">
+              <div class="jungle-zone-name">${escHtml(jungle.zone)}</div>
+              <div class="jungle-zone-atm">${escHtml(jungle.atmosphere)}</div>
+            </div>
+          </div>
+
+          <div class="jungle-chapter-row">
+            <div class="jungle-chapter-dots">${chapterDots}</div>
+            <div class="jungle-chapter-title" style="color:${color}">${escHtml(ch?.title || '')}</div>
+          </div>
+
+          <p class="jungle-narrative">${escHtml(ch?.narrative || '')}</p>
+
+          <div class="jungle-companion-row">
+            <div class="jungle-companion-avatar" style="border-color:${color}">${comp.avatar}</div>
+            <div class="jungle-companion-info">
+              <span class="jungle-companion-name" style="color:${color}">${comp.name}</span>
+              <span class="jungle-companion-role">${comp.role}</span>
+            </div>
+          </div>
+
+          <div class="arc-progress jungle-progress">
+            <div class="arc-trail">${trailDots}</div>
+            <div class="arc-bar-wrap">
+              <div class="arc-bar-fill" style="width:${pct}%;background:${color}"></div>
+            </div>
+            <span class="arc-pct">${doneCount}/${totalLevels} lessons · ${pct}%</span>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    // ── Fallback to STORY_DATA ───────────────────
     const story = STORY_DATA[persona];
     if (!story) { card.innerHTML = ''; return; }
 
-    const totalLevels  = data.levels.length;
-    const doneCount    = progress.completedLevels.length;
-    const pct          = Math.round((doneCount / totalLevels) * 100);
-    const color        = PERSONA_META[persona]?.color || '#3fb950';
-
-    // Pick current arc based on completed level index
-    const arc = story.arcs.find(a => doneCount <= a.upTo) || story.arcs[story.arcs.length - 1];
-
-    // Pick quote based on progress bucket
-    const qIdx = Math.min(Math.floor((doneCount / totalLevels) * (story.quotes.length - 1)), story.quotes.length - 1);
+    const arc   = story.arcs.find(a => doneCount <= a.upTo) || story.arcs[story.arcs.length - 1];
+    const qIdx  = Math.min(Math.floor((doneCount / totalLevels) * (story.quotes.length - 1)), story.quotes.length - 1);
     const quote = story.quotes[qIdx];
 
     card.innerHTML = `
@@ -453,17 +513,44 @@ const App = (() => {
     const levelId   = currentLevelData?.id || '';
     const key       = `${currentPersona}_${levelId}_${currentStepIndex}`;
 
-    // Look up life-stage override (populated by data-lifestage.js)
+    // ── Priority 1: life-stage override ──────────
     const lsOverride = (typeof LIFESTAGE_CONTEXTS !== 'undefined')
       ? LIFESTAGE_CONTEXTS?.[lifeStage]?.[key]
       : null;
 
-    const char    = lsOverride?.character || story?.character || { name: 'Guide', role: '', avatar: '🧑‍💻' };
-    const color   = PERSONA_META[currentPersona]?.color || '#3fb950';
-    const context = lsOverride?.context || step.context || '';
+    // ── Priority 2: jungle story level data (life-stage aware) ──
+    const jungleData  = (typeof JUNGLE_STORY !== 'undefined')
+      ? JUNGLE_STORY[currentPersona]
+      : null;
+    const jungleLS    = jungleData ? (jungleData[lifeStage] || jungleData.working || {}) : {};
+    const jungleLvl   = jungleLS?.levels?.[levelId] || null;
+
+    // ── Resolve character ─────────────────────────
+    // Jungle companion overrides the generic STORY_DATA character
+    const jungleChar = jungleLS?.companion || jungleData?.working?.companion || null;
+    const char       = lsOverride?.character
+                     || (jungleChar ? { name: jungleChar.name, role: jungleChar.role, avatar: jungleChar.avatar } : null)
+                     || story?.character
+                     || { name: 'Guide', role: '', avatar: '🧑‍💻' };
+
+    const color = PERSONA_META[currentPersona]?.color || '#3fb950';
+
+    // ── Resolve context text ──────────────────────
+    // Jungle 'before' text provides immersive scene-setting; 'mission' is the companion's direct dialogue.
+    // life-stage override takes highest priority if present.
+    const sceneText  = lsOverride?.context || jungleLvl?.before || step.context || '';
+    const missionTxt = jungleLvl?.mission || step.objective || '';
+
+    // ── Scene location badge (jungle only) ───────
+    const locationBadge = jungleLvl?.location ? `
+      <div class="story-location-badge" style="border-color:${color}40;color:${color}">
+        <span>${jungleLvl.scene || jungleData.zoneEmoji}</span>
+        <span>${escHtml(jungleLvl.location)}</span>
+      </div>` : '';
 
     stage.innerHTML = `
       <div class="stage-story-v2">
+        ${locationBadge}
         <div class="story-scene-title">${escHtml(step.title)}</div>
 
         <div class="story-bubble-row">
@@ -472,16 +559,16 @@ const App = (() => {
             <div class="story-char-name" style="color:${color}">${char.name}</div>
             <div class="story-char-role">${char.role}</div>
           </div>
-          <div class="story-bubble" style="border-color:${color}20">
+          <div class="story-bubble" style="border-color:${color}20;background:${color}06">
             <div class="story-bubble-tail" style="border-right-color:${color}20"></div>
             <p class="story-bubble-text" id="story-typewriter"></p>
           </div>
         </div>
 
-        ${step.objective ? `
-          <div class="story-objective-v2" style="border-left-color:${color}">
+        ${missionTxt ? `
+          <div class="story-objective-v2 jungle-mission" style="border-left-color:${color}">
             <span class="obj-icon">🎯</span>
-            <span class="obj-text">${escHtml(step.objective)}</span>
+            <span class="obj-text">${escHtml(missionTxt)}</span>
           </div>
         ` : ''}
 
@@ -493,8 +580,8 @@ const App = (() => {
       </div>
     `;
 
-    // Typewriter effect
-    typewriterEffect('story-typewriter', context, 22);
+    // Typewriter effect on the scene narrative
+    typewriterEffect('story-typewriter', sceneText, 22);
   }
 
   function typewriterEffect(elId, text, speed) {
@@ -1684,6 +1771,46 @@ const App = (() => {
     achEl.innerHTML = (!already && anyQuizSkipped)
       ? `<div class="modal-skip-notice">⚠️ Quiz skipped — you earned <strong>${earnedXP} XP</strong> (half). Come back to complete the quiz for the other <strong>${fullXP - earnedXP} XP</strong>.</div>`
       : '';
+
+    // ── Jungle story beat ─────────────────────────
+    const storyEl = document.getElementById('modal-story-beat');
+    if (storyEl) {
+      const lsKey      = state.lifeStage || 'working';
+      const jungle     = (typeof JUNGLE_STORY !== 'undefined') ? JUNGLE_STORY[persona] : null;
+      const jungleLS   = jungle ? (jungle[lsKey] || jungle.working || {}) : {};
+      const jungleLvl  = jungleLS?.levels?.[level.id];
+      const color      = PERSONA_META[persona]?.color || '#3fb950';
+
+      if (jungle && jungleLvl?.after) {
+        // Check if this level completes a chapter
+        const nowCompleted = [...(prog.completedLevels || [])];
+        const chComplete = (typeof isChapterComplete !== 'undefined')
+          ? isChapterComplete(persona, level.id, nowCompleted, lsKey)
+          : null;
+
+        const chapterBanner = chComplete ? `
+          <div class="story-beat-chapter" style="border-color:${color};background:${color}10">
+            <span class="story-beat-ch-scene">${chComplete.scene}</span>
+            <div>
+              <div class="story-beat-ch-title" style="color:${color}">${escHtml(chComplete.title)} — Complete!</div>
+              <div class="story-beat-ch-msg">${escHtml(chComplete.unlockMsg)}</div>
+            </div>
+          </div>` : '';
+
+        const compAvatar = jungleLS.companion?.avatar || jungle.working?.companion?.avatar || '🧑‍💻';
+        storyEl.innerHTML = `
+          ${chapterBanner}
+          <div class="story-beat-quote" style="border-left-color:${color}">
+            <span class="story-beat-avatar">${compAvatar}</span>
+            <span class="story-beat-text">${escHtml(jungleLvl.after)}</span>
+          </div>
+        `;
+        storyEl.classList.remove('hidden');
+      } else {
+        storyEl.classList.add('hidden');
+        storyEl.innerHTML = '';
+      }
+    }
 
     spawnConfetti();
     modal.classList.remove('hidden');

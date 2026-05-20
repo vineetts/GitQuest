@@ -1860,6 +1860,229 @@ body {
 }
 
 /* ═══════════════════════════════════════════════
+   Jungle Story Arc Card — World Map
+   ═══════════════════════════════════════════════ */
+
+.story-arc-card.jungle-card {
+  display: block;
+  background: linear-gradient(160deg,
+    color-mix(in srgb, var(--arc-color) 8%, var(--bg)) 0%,
+    color-mix(in srgb, var(--arc-color) 3%, var(--bg2)) 60%,
+    var(--bg2) 100%);
+  border: 1px solid color-mix(in srgb, var(--arc-color) 30%, transparent);
+  border-radius: 16px;
+  padding: 20px 22px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.story-arc-card.jungle-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at top left,
+    color-mix(in srgb, var(--arc-color) 12%, transparent) 0%,
+    transparent 65%);
+  pointer-events: none;
+}
+
+.jungle-zone-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.jungle-zone-emoji {
+  font-size: 1.7rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--arc-color) 50%, transparent));
+}
+.jungle-zone-info { flex: 1; }
+.jungle-zone-name {
+  font-size: .78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--arc-color);
+  font-family: var(--font-mono);
+}
+.jungle-zone-atm {
+  font-size: .73rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 2px;
+}
+
+.jungle-chapter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.jungle-chapter-dots {
+  display: flex;
+  gap: 5px;
+}
+.arc-chapter-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  transition: background .3s, transform .3s;
+}
+.arc-chapter-dot.done  { border-color: transparent; }
+.arc-chapter-dot.active { transform: scale(1.3); border-color: transparent; }
+
+.jungle-chapter-title {
+  font-size: .78rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: .04em;
+}
+
+.jungle-narrative {
+  font-size: .875rem;
+  line-height: 1.65;
+  color: var(--text);
+  margin: 0 0 16px;
+}
+
+.jungle-companion-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: color-mix(in srgb, var(--arc-color) 6%, var(--bg));
+  border: 1px solid color-mix(in srgb, var(--arc-color) 20%, transparent);
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+.jungle-companion-avatar {
+  font-size: 1.5rem;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 2px solid;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  background: var(--bg2);
+}
+.jungle-companion-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.jungle-companion-name {
+  font-size: .82rem;
+  font-weight: 700;
+}
+.jungle-companion-role {
+  font-size: .73rem;
+  color: var(--text-muted);
+}
+
+.jungle-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.arc-trail {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 2px;
+}
+.arc-trail-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  transition: background .3s;
+}
+.arc-trail-dot.done { border-color: transparent; }
+
+/* ── Location badge inside story step ─────────── */
+.story-location-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .72rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  padding: 4px 10px;
+  border: 1px solid;
+  border-radius: 20px;
+  margin-bottom: 10px;
+  opacity: .85;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+/* ── Jungle mission objective ─────────────────── */
+.story-objective-v2.jungle-mission {
+  font-size: .86rem;
+}
+
+/* ── Level-complete story beat ────────────────── */
+.modal-story-beat {
+  margin: 16px 0 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.modal-story-beat.hidden { display: none; }
+
+.story-beat-quote {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--bg2);
+  border-left: 3px solid;
+  border-radius: 0 10px 10px 0;
+}
+.story-beat-avatar {
+  font-size: 1.3rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.story-beat-text {
+  font-size: .84rem;
+  color: var(--text);
+  line-height: 1.55;
+  font-style: italic;
+}
+
+.story-beat-chapter {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid;
+  border-radius: 10px;
+  animation: storyBeatIn .4s ease;
+}
+.story-beat-ch-scene {
+  font-size: 1.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+.story-beat-ch-title {
+  font-size: .82rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  margin-bottom: 3px;
+}
+.story-beat-ch-msg {
+  font-size: .78rem;
+  color: var(--text-muted);
+}
+
+@keyframes storyBeatIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════
    Story Step v2 — Character Speech Bubble
    ═══════════════════════════════════════════════ */
 
