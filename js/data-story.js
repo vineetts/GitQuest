@@ -299,7 +299,7 @@ window.JUNGLE_STORY = {
       levels: {
         b1: {
           scene: '🌱', location: 'Your Project Folder',
-          before:  "Alex starts the tutorial with a story: 'I was three weeks into a personal project. Refactoring one file. Saved over the original. Lost everything.' A pause. 'That was the day I learned Git. It's a tool that remembers every version of every file you've ever worked on — so going back to any previous state takes ten seconds. No matter what you accidentally delete, overwrite, or break, it's always there.'",
+          before:  "Alex starts the tutorial with a story: 'I was three weeks into a personal project. Rewriting one file. Saved over the original. Lost everything.' A pause. 'That was the day I learned Git. It's a tool that remembers every version of every file you've ever worked on — so going back to any previous state takes ten seconds. No matter what you accidentally delete, overwrite, or break, it's always there.'",
           mission: '"Understand what Git is and why it exists. The concept comes before the commands."',
           after:   '"That accident I described? With Git it doesn\'t happen. Ever. You just learned the most important reason to use it." — Alex 📺'
         },
