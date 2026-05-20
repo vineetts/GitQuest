@@ -1,6 +1,6 @@
 # ⎇ GitQuest
 
-> **Learn Git by playing.** An interactive, browser-based game that takes you from zero to Git expert through story-driven lessons, real-world incident scenarios, IDE simulations, and personalised examples based on your background.
+> **Learn Git by playing.** An interactive, browser-based game that takes you from zero to Git expert through story-driven lessons, real-world incident scenarios, IDE simulations, hands-on CLI practice, and personalised examples based on your background.
 
 [![Live Demo](https://img.shields.io/badge/▶_Play_Now-GitQuest-3fb950?style=for-the-badge)](https://vineetsoppadandi.github.io/GitQuest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
@@ -11,7 +11,7 @@
 
 ## What is GitQuest?
 
-GitQuest is a **zero-install, browser-only** Git learning game with four structured learning paths. It focuses on **real-world situations, IDE workflows, and hands-on problem solving** — not just command memorisation — so learners build intuition that transfers to any tool or team.
+GitQuest is a **zero-install, browser-only** Git learning game with four structured learning paths. It balances **concepts, real-world scenarios, and hands-on CLI practice** — so learners build the muscle memory and intuition that transfers to any tool or team.
 
 ```
 Open index.html → Tell us about yourself → Pick your path → Start learning
@@ -23,9 +23,10 @@ No Node.js. No npm. No build step. No sign-up. One folder, open in a browser.
 
 ## Why GitQuest?
 
-- ✅ **Personalised from the start** — examples adapt to your background (school, uni, work, or self-taught)
+- ✅ **Personalised from the start** — examples adapt to your background (school, uni, work, or self-taught) in *every* step type, not just story steps
 - ✅ **Story-driven** — narrative characters guide you through each chapter with typewriter speech bubbles
 - ✅ **Crisis scenarios** — real incidents with multiple resolution choices and live consequences
+- ✅ **Hands-on CLI practice** — type real git commands in the simulated terminal; tasks tick off in real time
 - ✅ **Honest quiz system** — 3 attempts per question, hints, and answer reveal after 3 wrong
 - ✅ **Zero dependencies** — pure HTML, CSS, and vanilla JavaScript
 - ✅ **Works offline** — after first load, everything runs in your browser
@@ -36,12 +37,14 @@ No Node.js. No npm. No build step. No sign-up. One folder, open in a browser.
 
 | Feature | Description |
 |---|---|
-| 🌍 **Life-Stage Personalisation** | Pick your background (school / uni / work / self-taught) — story examples adapt to your world |
+| 🌍 **Life-Stage Personalisation** | Pick your background (school / uni / work / self-taught) — story *and* concept examples adapt to your world throughout every lesson |
 | 🎭 **Story-Driven Narrative** | Characters guide each chapter with speech bubbles and typewriter animation |
 | 🚨 **Crisis Scenarios** | Real incidents (secret exposed, wrong merge, bad rebase) with multiple choices and consequences |
 | 🔥 **Hotfix Runbooks** | Step-by-step production runbooks — each step runs in the simulated terminal |
+| ⌨️ **Terminal Practice Steps** | Guided CLI challenges — type the real commands, watch tasks tick off live with a progress bar and Hint buttons |
+| 🌱 **"Your World" Concept Examples** | Personalised example boxes appear inside concept steps for school / uni / learner backgrounds, showing each concept through a familiar lens |
 | 🌲 **Live Git Graph v2** | Animated SVG graph with glow on HEAD, arrowheads, hover tooltips, and animated edge draw-on |
-| 💻 **Simulated Terminal** | Full git simulator — 25+ commands, history (↑↓), Tab autocomplete |
+| 💻 **Simulated Terminal** | Full git + shell simulator — 30+ commands (including `mkdir`, `cd`, `touch`, `&&` chaining), history (↑↓), Tab autocomplete |
 | 🖥️ **IDE Simulations** | VS Code SCM panel, GitHub PR interface, AI review panels, agent workflow steppers |
 | 🖱️ **Drag & Drop Staging** | Physically move files into the staging area — teaches the three-area model viscerally |
 | 🎯 **3-Attempt Quiz System** | Attempt dots, progressive hints, answer revealed after 3 wrong tries |
@@ -61,13 +64,13 @@ No Node.js. No npm. No build step. No sign-up. One folder, open in a browser.
 | # | Lesson | Activity Type |
 |---|---|---|
 | 1 | What is Git & GitHub? | Visual + Quiz |
-| 2 | Your First Repository (`git init`) | Interactive steps |
-| 3 | The Three Areas: Working Dir → Staging → Repo | **Drag & Drop** |
-| 4 | Your First Commit | Commit form + 🚨 Crisis |
-| 5 | Branches — Parallel Universes | Interactive steps + 🚨 Crisis |
-| 6 | Merging Branches | Interactive steps |
-| 7 | Remote Repositories & GitHub | Interactive steps + 🚨 Crisis |
-| 8 | `.gitignore` | Visual + Quiz |
+| 2 | Your First Repository (`git init`) | Interactive steps + ⌨️ CLI Practice |
+| 3 | The Three Areas: Working Dir → Staging → Repo | **Drag & Drop** + ⌨️ CLI Practice |
+| 4 | Your First Commit | Commit form + 🚨 Crisis + ⌨️ CLI Practice |
+| 5 | Branches — Parallel Universes | Interactive steps + 🚨 Crisis + ⌨️ CLI Practice |
+| 6 | Merging Branches | Interactive steps + ⌨️ CLI Practice |
+| 7 | Remote Repositories & GitHub | Interactive steps + 🚨 Crisis + ⌨️ CLI Practice |
+| 8 | `.gitignore` | Visual + Quiz + ⌨️ CLI Practice |
 | 9 | Git in VS Code | **IDE Simulation** |
 | 10 | Beginner Challenge | Full workflow |
 
@@ -77,11 +80,11 @@ No Node.js. No npm. No build step. No sign-up. One folder, open in a browser.
 | # | Lesson | Activity Type |
 |---|---|---|
 | 1 | Branching Strategies (GitHub Flow vs GitFlow) | Visual + 🔥 Hotfix Runbook |
-| 2 | Merge Conflicts | **Interactive resolver** |
+| 2 | Merge Conflicts | **Interactive resolver** + ⌨️ CLI Practice |
 | 3 | Rebase vs Merge | Visual + 🚨 Crisis |
-| 4 | Stashing | Interactive steps |
+| 4 | Stashing | Interactive steps + ⌨️ CLI Practice |
 | 5 | Pull Requests on GitHub | **GitHub PR Simulation** |
-| 6 | Undoing Mistakes (reset, revert, restore) | Interactive steps |
+| 6 | Undoing Mistakes (reset, revert, restore) | Interactive steps + ⌨️ CLI Practice |
 | 7 | Cherry-Pick | Interactive steps |
 | 8 | Tags & Releases | Interactive steps |
 | 9 | VS Code Git Deep Dive | **VS Code Simulation** |
@@ -92,9 +95,9 @@ No Node.js. No npm. No build step. No sign-up. One folder, open in a browser.
 
 | # | Lesson | Activity Type |
 |---|---|---|
-| 1 | Git Internals (blobs, trees, commits) | Visual + 🚨 Crisis |
+| 1 | Git Internals (blobs, trees, commits) | Visual + 🚨 Crisis + ⌨️ CLI Practice |
 | 2 | Interactive Rebase (squash, fixup, reorder) | Interactive steps |
-| 3 | Git Bisect (binary search for bugs) | Interactive steps + 🚨 Crisis |
+| 3 | Git Bisect (binary search for bugs) | Interactive steps + 🚨 Crisis + ⌨️ CLI Practice |
 | 4 | Git Hooks (pre-commit, commit-msg) | Interactive steps + 🚨 Crisis |
 | 5 | 🚨 Incident: Production Hotfix | **Real-world scenario** |
 | 6 | Team Governance (branch protection, CODEOWNERS) | **GitHub Settings Sim** |
@@ -122,16 +125,21 @@ No Node.js. No npm. No build step. No sign-up. One folder, open in a browser.
 
 ## Life-Stage Personalisation
 
-When you start GitQuest you choose your background — and the story examples adapt:
+When you start GitQuest you choose your background — and the examples adapt **throughout every lesson**, not just story steps:
 
 | Stage | Who it's for | Example scenario |
 |---|---|---|
-| 🏫 **High School** | Students in CS or IT class | "Me and Jamie are editing the same file and now we have three versions…" |
-| 🎓 **University** | Undergrads / postgrads | "Our 4-person team is all pushing to the same repo and things keep breaking…" |
-| 💼 **Working Professional** | Developers in a team | "My manager said 'don't break main' and I have no idea what that means yet…" |
-| 🌱 **Self-Taught / Hobbyist** | Personal projects, tutorials | "I deleted my entire project by accident. Never again." |
+| 🏫 **High School** | Students in CS or IT class | "Me and Jamie are editing the same file — Git tracks every version so nobody overwrites each other." |
+| 🎓 **University** | Undergrads / postgrads | "Our 4-person team is all pushing to the same repo — branches and PRs keep the chaos in order." |
+| 💼 **Working Professional** | Developers in a team | "My manager said 'don't break main' — here's exactly how the branching workflow protects it." |
+| 🌱 **Self-Taught / Hobbyist** | Personal projects, tutorials | "I deleted my entire project by accident. Never again — here's your permanent undo button." |
 
-All 24 story lessons have three localised variants. You can change your background at any time from the Profile screen.
+Personalisation covers three layers:
+- **Story steps** — narrative context and character dialogue
+- **Concept steps** — a "Your World" example box showing the concept through a lens from your life
+- **Terminal practice steps** — the scenario framing matches your background
+
+You can change your background at any time from the Profile screen.
 
 ---
 
@@ -160,12 +168,19 @@ Each crisis has **3–4 resolution choices**, each with a real-world outcome sto
 - **Answer reveal** — after 3 failed attempts, the correct answer is shown in a blue panel with full explanation
 - **Real-world consequences** — wrong answers show what actually happens in a real codebase
 - **Skip = 50% XP** — move past a quiz without answering to keep momentum; earn the other half when you return
+- **CLI-focused questions** — command-syntax questions balance conceptual multiple choice throughout all paths
 
 ---
 
 ## Getting Started
 
 ### Play Instantly (No Install)
+
+**Quickest option — just open the live link:**
+
+> 🎮 **[https://vineetsoppadandi.github.io/GitQuest](https://vineetsoppadandi.github.io/GitQuest)**
+
+Or clone and run locally:
 
 ```bash
 git clone https://github.com/vineetsoppadandi/GitQuest.git
@@ -178,9 +193,13 @@ xdg-open index.html      # Linux
 
 Or just **double-click `index.html`**. That's it.
 
-### Deploy to GitHub Pages (Share with your team)
+### Share with your team or class
 
-1. Fork this repo
+Send them the live link — no setup, no account needed. Each player's progress is saved in **their own browser** (`localStorage`), completely separate from everyone else's.
+
+### Deploy your own copy (Fork it)
+
+1. Fork this repo on GitHub
 2. Go to **Settings → Pages**
 3. Under **Build and deployment → Source**, select **GitHub Actions**
 4. Click **Save** — the workflow in `.github/workflows/pages.yml` handles the rest
@@ -206,14 +225,15 @@ npx serve .
 GitQuest/
 ├── index.html              # App shell — all screens and modals
 ├── css/
-│   └── style.css           # Full design system (dark theme, ~1200 lines)
+│   └── style.css           # Full design system (dark theme, ~2600 lines)
 ├── js/
 │   ├── data.js             # Core lesson content — 28 lessons across 3 paths
 │   ├── data-innovator.js   # Innovator path — 11 AI & strategy lessons
 │   ├── data-practical.js   # Crisis & hotfix scenarios (patches existing lessons)
 │   ├── data-lifestage.js   # Life-stage story overrides (72 personalised variants)
+│   ├── data-commands.js    # CLI practice steps, concept examples & extra quiz questions
 │   ├── visualizer.js       # SVG git graph renderer v2 — glow, tooltips, animations
-│   ├── terminal.js         # Simulated git terminal (25+ commands)
+│   ├── terminal.js         # Simulated git + shell terminal (30+ commands, && chaining)
 │   └── app.js              # Game engine — routing, state, step renderers, XP logic
 ├── .github/
 │   ├── workflows/
@@ -274,6 +294,41 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full lesson schema and a step-by-
 }
 ```
 
+**Adding a terminal practice step** — inject into any existing lesson via `js/data-commands.js`:
+
+```javascript
+// In js/data-commands.js  (inside the patchCommands IIFE)
+addSteps('beginner', 'b11', [
+  {
+    type: 'terminal-practice',
+    title: 'Practice: Create a Git Alias',
+    context: 'Set up two aliases and verify they work.',
+    contexts: {
+      school:  'Speed up your workflow before your next project deadline.',
+      uni:     'Your whole team uses git st — now so do you.',
+      learner: 'Aliases save dozens of keystrokes every day.',
+      working: 'Standard aliases every senior dev has in their .gitconfig.'
+    },
+    tasks: [
+      {
+        instruction: 'Create a "st" alias for git status',
+        command: 'git config --global alias.st status',
+        acceptPartial: false,
+        hint: 'Type: git config --global alias.st status',
+        successMsg: '✅ Alias created — "git st" now works globally'
+      },
+      {
+        instruction: 'Verify the alias works',
+        command: 'git st',
+        acceptPartial: false,
+        hint: 'Type: git st  (your new alias)',
+        successMsg: '✅ Alias works perfectly!'
+      }
+    ]
+  }
+]);
+```
+
 **Adding a crisis scenario** — inject into any existing lesson without touching `data.js`:
 
 ```javascript
@@ -289,6 +344,15 @@ patch('beginner', 'b11', [{
     { label: 'Panic and email the team', outcome: 'wrong', result: '...' }
   ]
 }]);
+```
+
+**Adding life-stage concept examples** — add to the `LIFESTAGE_EXAMPLES` object in `js/data-commands.js`:
+
+```javascript
+// Key format: `${persona}_${levelId}_${stepIndex}`
+// stepIndex is the 0-based index of the concept step within the lesson
+window.LIFESTAGE_EXAMPLES.school['beginner_b11_1'] =
+  'Your teacher is impressed you typed git st instead of the full command. Small habits = big efficiency gains.';
 ```
 
 ---
@@ -339,8 +403,9 @@ Contributions are warmly welcome! Whether it's:
 
 - 🐛 Fixing a bug
 - 📝 Adding or improving a lesson
+- ⌨️ Writing a new terminal practice step
 - 🚨 Writing a new crisis scenario
-- 🌍 Adding life-stage story variants for a new background
+- 🌍 Adding life-stage story or concept variants for a new background
 - 🎨 Improving UI/UX
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
