@@ -82,7 +82,7 @@
   <!-- ═══════════════ SCREEN: PERSONA SELECT ═══════════════ -->
   <div id="screen-persona" class="screen">
     <div class="screen-header">
-      <button class="btn-back" onclick="App.showScreen('welcome')">← Back</button>
+      <button class="btn-back" onclick="App.showScreen('lifestage')">← Back</button>
       <h2>Choose Your Path</h2>
       <p class="screen-subtitle">Select the level that best fits where you are right now</p>
     </div>
@@ -92,77 +92,53 @@
         <div class="persona-badge">🌱</div>
         <h3>Explorer</h3>
         <div class="persona-tag">Beginner</div>
-        <p class="persona-desc">New to Git or version control? Start here. You'll build a solid foundation through visual, hands-on lessons with no prior knowledge needed.</p>
-        <ul class="persona-topics">
-          <li>✦ What is Git & why it matters</li>
-          <li>✦ Commits, branches & merges</li>
-          <li>✦ Working with GitHub</li>
-          <li>✦ Basic IDE source control</li>
-        </ul>
+        <p class="persona-desc">Brand new to Git? Start here. Visual lessons, no prior knowledge needed.</p>
+        <div class="persona-sample">"I have no idea what version control is — where do I even start?"</div>
         <div class="persona-stats">
-          <span>12 Lessons</span>
-          <span>~2 hours</span>
+          <span>12 lessons</span>
+          <span>~2 hrs</span>
           <span>No prereqs</span>
         </div>
-        <button class="btn btn-persona beginner-btn">Begin as Explorer →</button>
       </div>
 
       <div class="persona-card intermediate" onclick="App.selectPersona('intermediate')">
         <div class="persona-badge">🔀</div>
         <h3>Adventurer</h3>
         <div class="persona-tag">Intermediate</div>
-        <p class="persona-desc">You know the basics but want to work smarter. Tackle real team scenarios, merge conflicts, pull requests, and IDE workflows.</p>
-        <ul class="persona-topics">
-          <li>✦ Branching strategies & PRs</li>
-          <li>✦ Merge conflicts & rebasing</li>
-          <li>✦ VS Code Source Control</li>
-          <li>✦ Undoing mistakes safely</li>
-        </ul>
+        <p class="persona-desc">Know the basics but want to work smarter. Real team scenarios, merge conflicts, pull requests.</p>
+        <div class="persona-sample">"I know commits and branches — but merge conflicts terrify me."</div>
         <div class="persona-stats">
-          <span>10 Lessons</span>
-          <span>~3 hours</span>
+          <span>10 lessons</span>
+          <span>~3 hrs</span>
           <span>Basic Git needed</span>
         </div>
-        <button class="btn btn-persona intermediate-btn">Begin as Adventurer →</button>
       </div>
 
       <div class="persona-card expert" onclick="App.selectPersona('expert')">
         <div class="persona-badge">⚡</div>
         <h3>Master</h3>
         <div class="persona-tag">Expert</div>
-        <p class="persona-desc">Real-world incidents, advanced workflows, and team governance. You'll handle production hotfixes, bisect regressions, and architect team Git strategies.</p>
-        <ul class="persona-topics">
-          <li>✦ Git internals & advanced rebase</li>
-          <li>✦ Git bisect, hooks, submodules</li>
-          <li>✦ Production incident simulations</li>
-          <li>✦ Team workflows at scale</li>
-        </ul>
+        <p class="persona-desc">Production incidents, advanced workflows, team governance. You architect how teams ship.</p>
+        <div class="persona-sample">"I need to bisect a regression before standups — where do I start?"</div>
         <div class="persona-stats">
-          <span>8 Lessons</span>
-          <span>~4 hours</span>
+          <span>8 lessons</span>
+          <span>~4 hrs</span>
           <span>Solid Git experience</span>
         </div>
-        <button class="btn btn-persona expert-btn">Begin as Master →</button>
       </div>
 
       <div class="persona-card innovator" onclick="App.selectPersona('innovator')">
         <div class="persona-badge">🚀</div>
         <h3>Innovator</h3>
         <div class="persona-tag">AI & Strategy</div>
-        <p class="persona-desc">Trunk-based development, GitOps, monorepos, agentic AI coding, MCP, AI code review, merge queues — the cutting edge of how elite teams ship software.</p>
-        <ul class="persona-topics">
-          <li>✦ TBD, GitOps & monorepo strategies</li>
-          <li>✦ AI agents: Claude Code, Copilot, Cursor</li>
-          <li>✦ MCP: connect Claude to your repo</li>
-          <li>✦ AI review, merge queues, Dependabot</li>
-        </ul>
+        <div class="innovator-new-badge">✨ NEW</div>
+        <p class="persona-desc">GitOps, trunk-based dev, AI agents, merge queues — the cutting edge of how elite teams ship.</p>
+        <div class="persona-sample">"I want AI coding agents and GitOps pipelines working together seamlessly."</div>
         <div class="persona-stats">
-          <span>11 Lessons</span>
-          <span>~5 hours</span>
+          <span>11 lessons</span>
+          <span>~5 hrs</span>
           <span>Expert Git needed</span>
         </div>
-        <div class="innovator-new-badge">✨ NEW</div>
-        <button class="btn btn-persona innovator-btn">Begin as Innovator →</button>
       </div>
 
     </div>
