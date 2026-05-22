@@ -1081,16 +1081,18 @@ body {
 .viz-panel.active { display: flex; }
 
 /* ─── Panel hint — contextual pointer inside lesson stage ─── */
+/* Panel hints — same visual style as .tp-pointer (dashed border, muted) */
 .panel-hint {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-start;
+  gap: 9px;
   margin-top: 14px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: .83rem;
-  line-height: 1.4;
-  border: 1px solid;
+  padding: 8px 12px;
+  border-radius: 7px;
+  font-size: .82rem;
+  line-height: 1.5;
+  border: 1px dashed;
+  color: var(--text-muted);
   animation: hintSlideIn .3s ease;
 }
 @keyframes hintSlideIn {
@@ -1098,17 +1100,15 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 .panel-hint.terminal-hint {
-  background: rgba(26,127,55,.1);
-  border-color: rgba(26,127,55,.3);
-  color: var(--green);
+  background: rgba(63,185,80,.06);
+  border-color: rgba(63,185,80,.3);
 }
 .panel-hint.graph-hint {
-  background: rgba(88,166,255,.08);
-  border-color: rgba(88,166,255,.25);
-  color: var(--blue);
+  background: rgba(88,166,255,.06);
+  border-color: rgba(88,166,255,.3);
 }
-.panel-hint-icon { font-size: 1.1rem; flex-shrink: 0; }
-.panel-hint strong { font-weight: 700; }
+.panel-hint-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+.panel-hint strong { font-weight: 600; color: var(--text); }
 
 #git-svg {
   flex: 1;
@@ -2728,6 +2728,13 @@ body {
   border: 1px dashed rgba(63,185,80,.3);
   border-radius: 7px;
   padding: 8px 12px;
+  margin-bottom: 10px;
+  animation: hintSlideIn .3s ease;
+}
+/* Graph-tab variant — blue instead of green */
+.tp-pointer.graph-pointer {
+  background: rgba(88,166,255,.06);
+  border-color: rgba(88,166,255,.3);
 }
 
 .tp-tasks {
@@ -2745,6 +2752,15 @@ body {
   border-radius: 9px;
   padding: 12px 14px;
   transition: border-color .2s, background .2s;
+}
+
+/* Flash when pre-req guidance points to this task */
+@keyframes tpHighlight {
+  0%, 100% { background: var(--bg3); }
+  40%       { background: rgba(255,165,0,.18); border-color: rgba(255,165,0,.6); }
+}
+.tp-task.tp-highlight {
+  animation: tpHighlight 1s ease 2;
 }
 
 .tp-task.tp-done {

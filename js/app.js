@@ -490,16 +490,17 @@ const App = (() => {
   }
 
   // ── Panel hints ──────────────────────────────────────────
-  // Injects a contextual hint into the lesson stage pointing
-  // the learner at the correct right-panel tab (Graph or Terminal).
+  // Prepends a tp-pointer-style banner at the TOP of the lesson stage,
+  // directing the learner at the correct right-panel tab (Graph or Terminal).
+  // terminal-practice is excluded — it already has its own embedded tp-pointer.
   function addPanelHints(step) {
     const stage = document.getElementById('lesson-stage');
     if (!stage) return;
 
-    // Terminal hint: steps where learner should be typing commands
-    const TERMINAL_TYPES = new Set(['terminal-practice', 'challenge', 'commitform', 'conflictresolver', 'hotfix', 'crisis']);
-    // Graph hint: steps where the git graph is the primary visual to watch
-    // Explicitly listed — quiz/dragdrop/ide/scenario have their own UI, no graph hint
+    // Steps where the Terminal tab is the primary action pane
+    const TERMINAL_TYPES = new Set(['challenge', 'commitform', 'conflictresolver', 'hotfix', 'crisis']);
+    // Steps where the Git Graph is the primary visual
+    // quiz/dragdrop/ide/scenario have their own UI — no graph hint needed
     const GRAPH_TYPES    = new Set(['story', 'concept', 'visual', 'interactive']);
 
     const wantsTerminal = TERMINAL_TYPES.has(step.type);
@@ -507,23 +508,15 @@ const App = (() => {
 
     if (wantsTerminal) {
       const hint = document.createElement('div');
-      hint.className = 'panel-hint terminal-hint';
-      hint.innerHTML = `
-        <span class="panel-hint-icon">💻</span>
-        <span>Try these commands in the <strong>Terminal tab →</strong> on the right.
-          Watch what Git actually prints — those messages are part of what you're learning.</span>
-      `;
-      stage.appendChild(hint);
+      hint.className = 'tp-pointer';
+      hint.innerHTML = `💻 Try these commands in the <strong>Terminal tab →</strong> on the right. Watch what Git prints back — those messages are real.`;
+      stage.prepend(hint);
       pulseTab('terminal');
     } else if (wantsGraph) {
       const hint = document.createElement('div');
-      hint.className = 'panel-hint graph-hint';
-      hint.innerHTML = `
-        <span class="panel-hint-icon">🌿</span>
-        <span>Check the <strong>Git Graph →</strong> on the right — it updates as you go.
-          See how commits and branches connect visually.</span>
-      `;
-      stage.appendChild(hint);
+      hint.className = 'tp-pointer graph-pointer';
+      hint.innerHTML = `👉 Watch the <strong>Git Graph →</strong> on the right — it updates as you progress. See how commits and branches connect.`;
+      stage.prepend(hint);
       pulseTab('graph');
     }
   }
@@ -1312,6 +1305,7 @@ const App = (() => {
 
   let terminalTasks     = [];
   let terminalTasksDone = [];
+  let pendingBlockerIdx = -1;   // index of blocking task when pre-req choice is pending
 
   function renderTerminalPractice(stage, step) {
     terminalTasks     = step.tasks || [];
@@ -1363,46 +1357,102 @@ const App = (() => {
     // Normalise: trim, collapse internal whitespace
     const norm = rawCmd.trim().replace(/\s+/g, ' ');
 
+    // ── Pre-req check ───────────────────────────────────────────
+    // If the typed command matches a LATER task but earlier tasks are still
+    // pending, offer an interactive choice: continue anyway or scroll back.
+    let skippedAhead = false;
     terminalTasks.forEach((task, i) => {
       if (terminalTasksDone[i]) return;
       const expected = task.command.trim().replace(/\s+/g, ' ');
+      const prefix   = expected.split(' ').slice(0, 3).join(' ');
+      const matches  = norm === expected || (task.acceptPartial && norm.startsWith(prefix));
 
+      if (matches) {
+        const firstPending = terminalTasks.findIndex((_, j) => j < i && !terminalTasksDone[j]);
+        if (firstPending !== -1) {
+          const blocker = terminalTasks[firstPending];
+          pendingBlockerIdx = firstPending;
+          // Delegate the choice message to Terminal so it can gate "continue"/"back"
+          Terminal.blockWithChoice(rawCmd, blocker, firstPending);
+          // Flash the blocking task in the UI
+          const el = document.getElementById(`tp-task-${firstPending}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('tp-highlight');
+            setTimeout(() => el.classList.remove('tp-highlight'), 2000);
+          }
+          skippedAhead = true;
+        }
+      }
+    });
+    if (skippedAhead) return;
+
+    // ── Normal task matching ────────────────────────────────────
+    terminalTasks.forEach((task, i) => {
+      if (terminalTasksDone[i]) return;
+      const expected = task.command.trim().replace(/\s+/g, ' ');
       let matched = norm === expected;
-
       if (!matched && task.acceptPartial) {
-        if (expected.includes(' && ')) {
-          // Compound command: require exact match (already checked above)
-          matched = false;
-        } else {
-          // Simple partial: typed command starts with first 3 words of expected
-          // e.g. `git commit -m "any message"` matches expected `git commit -m "Initial commit"`
+        if (!expected.includes(' && ')) {
           const prefix = expected.split(' ').slice(0, 3).join(' ');
           matched = norm.startsWith(prefix);
         }
       }
-
-      if (matched) {
-        terminalTasksDone[i] = true;
-        const checkEl  = document.getElementById(`tp-check-${i}`);
-        const resultEl = document.getElementById(`tp-result-${i}`);
-        const taskEl   = document.getElementById(`tp-task-${i}`);
-        if (checkEl)  checkEl.textContent  = '✅';
-        if (resultEl) resultEl.classList.remove('hidden');
-        if (taskEl)   taskEl.classList.add('tp-done');
-
-        const done  = terminalTasksDone.filter(Boolean).length;
-        const total = terminalTasks.length;
-        const bar   = document.getElementById('tp-progress-bar');
-        const label = document.getElementById('tp-progress-label');
-        if (bar)   bar.style.width = `${(done / total) * 100}%`;
-        if (label) label.textContent = `${done} / ${total} completed`;
-
-        if (done === total) {
-          document.getElementById('tp-complete')?.classList.remove('hidden');
-          showToast('⌨️', 'Command Practice Complete!');
-        }
-      }
+      if (matched) markTaskDone(i);
     });
+  }
+
+  // Mark a single task index as done and update UI + progress bar
+  function markTaskDone(i) {
+    if (terminalTasksDone[i]) return; // already done
+    terminalTasksDone[i] = true;
+    const checkEl  = document.getElementById(`tp-check-${i}`);
+    const resultEl = document.getElementById(`tp-result-${i}`);
+    const taskEl   = document.getElementById(`tp-task-${i}`);
+    if (checkEl)  checkEl.textContent = '✅';
+    if (resultEl) resultEl.classList.remove('hidden');
+    if (taskEl)   taskEl.classList.add('tp-done');
+
+    const done  = terminalTasksDone.filter(Boolean).length;
+    const total = terminalTasks.length;
+    const bar   = document.getElementById('tp-progress-bar');
+    const label = document.getElementById('tp-progress-label');
+    if (bar)   bar.style.width = `${(done / total) * 100}%`;
+    if (label) label.textContent = `${done} / ${total} completed`;
+
+    if (done === total) {
+      document.getElementById('tp-complete')?.classList.remove('hidden');
+      showToast('⌨️', 'Command Practice Complete!');
+    }
+  }
+
+  // Called by Terminal when the user types "continue" after a skip-ahead warning.
+  // Re-runs the original command through the task tracker, bypassing the pre-req guard.
+  function forceCompleteTask(rawCmd) {
+    if (!terminalTasks.length) return;
+    const norm = rawCmd.trim().replace(/\s+/g, ' ');
+    terminalTasks.forEach((task, i) => {
+      if (terminalTasksDone[i]) return;
+      const expected = task.command.trim().replace(/\s+/g, ' ');
+      let matched = norm === expected;
+      if (!matched && task.acceptPartial) {
+        const prefix = expected.split(' ').slice(0, 3).join(' ');
+        matched = norm.startsWith(prefix);
+      }
+      if (matched) markTaskDone(i);
+    });
+  }
+
+  // Called by Terminal when the user types "back" after a skip-ahead warning.
+  // Scrolls to and highlights the blocking task.
+  function scrollToBlockingTask() {
+    const el = document.getElementById(`tp-task-${pendingBlockerIdx}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('tp-highlight');
+      setTimeout(() => el.classList.remove('tp-highlight'), 2000);
+    }
+    pendingBlockerIdx = -1;
   }
 
   function showTPHint(i) {
@@ -2118,7 +2168,7 @@ const App = (() => {
     selectLifeStage,
     selectCrisisChoice, retryCrisis,
     runHotfixStep,
-    checkTerminalTask, showTPHint
+    checkTerminalTask, showTPHint, forceCompleteTask, scrollToBlockingTask
   };
 })();
 
