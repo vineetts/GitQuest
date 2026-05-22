@@ -13,9 +13,17 @@ const Terminal = (() => {
   let commits = [];
   let stashes = [];
   let tags = [];
+  let branches = ['main'];              // all known local branch names
+  let conflictBranches = new Set();     // branch names that produce a conflict on merge
+  let pendingBlockedCmd = null;         // raw cmd awaiting continue/back choice from user
   let currentLesson = null;
   let challengeSteps = [];
   let completedChallengeSteps = [];
+
+  // Tracks an active merge conflict in the simulated repo
+  // null when no conflict is active
+  // { branch: string, file: string, resolved: boolean }
+  let conflictState = null;
 
   const PROMPT_CWD = '~/my-app';
 
@@ -24,24 +32,105 @@ const Terminal = (() => {
     challengeSteps = [];
     completedChallengeSteps = [];
     resetState();
+
+    // ── Auto-initialize repo for mid-workflow lessons ──────────
+    // If the lesson's terminal-practice tasks don't include 'git init',
+    // the scenario assumes a repo already exists — pre-set it up so
+    // commands work without the user needing to run git init first.
+    autoInitIfNeeded(lessonData);
+
     const output = document.getElementById('terminal-output');
     if (output) {
       output.innerHTML = '';
       print('info', `GitQuest Terminal — type 'help' for commands`);
-      print('info', `Lesson context loaded: ${lessonData?.title || 'Free practice'}`);
+      print('info', `Lesson: ${lessonData?.title || 'Free practice'}`);
+      if (repoInitialized && commits.length > 0) {
+        print('info', `Repository already set up — ${commits.length} commits on ${currentBranch}`);
+      }
       print('', '');
     }
     updatePrompt();
   }
 
-  function resetState() {
-    repoInitialized = false;
-    stagedFiles = [];
+  // Scans lesson terminal-practice tasks. If none of them is 'git init',
+  // the lesson starts mid-workflow → initialize the repo and set up any
+  // branches that will be referenced by the tasks.
+  // Also detects conflict-producing branches via pattern analysis.
+  function autoInitIfNeeded(lessonData) {
+    const tpStep = (lessonData?.steps || []).find(s => s.type === 'terminal-practice');
+    if (!tpStep || !tpStep.tasks?.length) return;
+
+    const allCmds = tpStep.tasks.map(t => (t.command || '').trim());
+    const needsInit = allCmds.some(c => c === 'git init' || c.startsWith('git init '));
+    if (needsInit) return; // lesson teaches init from scratch — don't pre-empt
+
+    // Pre-initialize with realistic baseline state
+    repoInitialized = true;
+    commits = [
+      { id: randSha(), msg: 'Initial commit',    branch: 'main' },
+      { id: randSha(), msg: 'Add project files', branch: 'main' },
+      { id: randSha(), msg: 'Update styles',     branch: 'main' }
+    ];
+    stagedFiles  = [];
     workingFiles = ['index.html', 'style.css', 'app.js'];
-    commits = [];
-    stashes = [];
-    tags = [];
-    currentBranch = 'main';
+
+    // Pre-create branches referenced by 'git merge <branch>'
+    // and detect which ones should produce conflicts
+    allCmds.forEach((cmd, idx) => {
+      const m = cmd.match(/^git merge ([\w\-\/\.]+)/);
+      if (!m || !m[1]) return;
+      const branchName = m[1];
+      if (['--abort', '--continue', '--no-ff'].includes(branchName)) return;
+
+      // Register this branch
+      commits.push({ id: randSha(), msg: `Feature: ${branchName}`, branch: branchName });
+      if (!branches.includes(branchName)) branches.push(branchName);
+
+      // ── Conflict detection ────────────────────────────────
+      // A branch produces a conflict if:
+      // (a) its name contains "conflict", OR
+      // (b) the tasks after this merge include a 'cat <file>' task AND
+      //     a 'git add <file>' task — the classic resolve-and-stage pattern
+      if (branchName.includes('conflict')) {
+        conflictBranches.add(branchName);
+        return;
+      }
+      const postMergeCmds = allCmds.slice(idx + 1);
+      const hasCat = postMergeCmds.some(c => c.startsWith('cat '));
+      const hasAdd = postMergeCmds.some(c => /^git add\s/.test(c));
+      if (hasCat && hasAdd) {
+        conflictBranches.add(branchName);
+      }
+    });
+
+    // Pre-create branches for switch tasks too
+    allCmds.forEach(cmd => {
+      const switchM = cmd.match(/^git (?:switch|checkout) (?:-c\s+)?([\w\-\/\.]+)/);
+      if (switchM && switchM[1] && !switchM[1].startsWith('-')) {
+        if (!branches.includes(switchM[1])) branches.push(switchM[1]);
+      }
+    });
+
+    // If tasks include a commit but no add, pre-stage files so commit works
+    const hasStagingTask = allCmds.some(c => c.startsWith('git add'));
+    const hasCommitTask  = allCmds.some(c => c.startsWith('git commit'));
+    if (hasCommitTask && !hasStagingTask) {
+      stagedFiles = ['app.js'];
+    }
+  }
+
+  function resetState() {
+    repoInitialized  = false;
+    stagedFiles      = [];
+    workingFiles     = ['index.html', 'style.css', 'app.js'];
+    commits          = [];
+    stashes          = [];
+    tags             = [];
+    branches         = ['main'];
+    currentBranch    = 'main';
+    conflictState    = null;
+    conflictBranches = new Set();
+    pendingBlockedCmd = null;
   }
 
   function handleKey(e) {
@@ -78,6 +167,29 @@ const Terminal = (() => {
   }
 
   function execute(rawCmd) {
+    // ── Handle pending pre-req interactive choice ─────────────
+    // If the user previously typed a command that skipped ahead and we asked
+    // "continue or back?", intercept the response here.
+    if (pendingBlockedCmd !== null) {
+      const lc = rawCmd.trim().toLowerCase();
+      print('cmd', `${PROMPT_CWD} (${currentBranch}) $ ${rawCmd}`);
+      if (lc === '1' || lc === 'continue' || lc === 'yes') {
+        print('info', '↩  Proceeding — marking task complete.');
+        const saved = pendingBlockedCmd;
+        pendingBlockedCmd = null;
+        setTimeout(() => { if (typeof App !== 'undefined') App.forceCompleteTask(saved); }, 20);
+        return;
+      }
+      if (lc === '2' || lc === 'back' || lc === 'no') {
+        print('info', '↩  Scrolling to the required step — complete it first.');
+        pendingBlockedCmd = null;
+        setTimeout(() => { if (typeof App !== 'undefined') App.scrollToBlockingTask(); }, 20);
+        return;
+      }
+      // Any other input — clear the pending state and fall through to normal processing
+      pendingBlockedCmd = null;
+    }
+
     // Handle compound commands (cmd1 && cmd2)
     if (rawCmd.includes(' && ')) {
       // Check practice task with FULL compound string first
@@ -89,7 +201,6 @@ const Terminal = (() => {
 
     print('cmd', `${PROMPT_CWD} (${currentBranch}) $ ${rawCmd}`);
     // Notify terminal-practice tracker for ALL commands (git and shell)
-    // Note: window.App is a guard (truthy) but App is the real IIFE reference
     setTimeout(() => { if (typeof App !== 'undefined') App.checkTerminalTask(rawCmd); }, 20);
 
     const parts = rawCmd.trim().split(/\s+/);
@@ -131,10 +242,25 @@ const Terminal = (() => {
     }
     if (cmd === 'cat') {
       const file = parts[1];
-      if (file && workingFiles.includes(file)) {
+      if (!file) { print('err', 'cat: missing file operand'); return; }
+
+      // Show conflict markers when this file is actively conflicted
+      if (conflictState && !conflictState.resolved && file === conflictState.file) {
+        print('out', `<<<<<<< HEAD`);
+        print('branch', `function getConfig() {`);
+        print('branch', `  return { theme: 'dark', version: '2.0' };`);
+        print('branch', `}`);
+        print('out', `=======`);
+        print('err',  `function getConfig() {`);
+        print('err',  `  return { theme: 'light', timeout: 3000 };`);
+        print('err',  `}`);
+        print('out', `>>>>>>> ${conflictState.branch}`);
+        return;
+      }
+      if (file && (workingFiles.includes(file) || (conflictState && file === conflictState.file))) {
         print('out', `[contents of ${file}]`);
       } else {
-        print('err', `cat: ${file || ''}: No such file or directory`);
+        print('err', `cat: ${file}: No such file or directory`);
       }
       return;
     }
@@ -146,6 +272,22 @@ const Terminal = (() => {
 
     if (cmd !== 'git') {
       print('err', `command not found: ${cmd}. Type 'help' for git commands.`);
+      return;
+    }
+
+    // Guard: if repo not initialized, guide the learner with interactive choice
+    if (!repoInitialized && !['init', 'clone', 'config', 'help', 'version'].includes(sub)) {
+      const tpStep = (currentLesson?.steps || []).find(s => s.type === 'terminal-practice');
+      const initTask = (tpStep?.tasks || []).find(t => t.command?.startsWith('git init'));
+      print('err', 'fatal: not a git repository (or any of the parent directories): .git');
+      print('out', '');
+      if (initTask) {
+        print('info', '⚠️  No repository yet — you need to run  git init  first.');
+        print('info', `    Look at Task 1 in the panel above and run:  git init`);
+      } else {
+        print('info', '⚠️  No repository detected in this directory.');
+        print('info', `    Run  git init  to create one, or  git clone <url>  to copy an existing repo.`);
+      }
       return;
     }
 
@@ -203,15 +345,25 @@ const Terminal = (() => {
         break;
 
       case 'pull':
-        print('out', 'Already up to date.  (simulated)');
+        if (commits.length === 0) {
+          print('out', `From https://github.com/you/my-app`);
+          print('out', ` * branch            ${currentBranch}     -> FETCH_HEAD`);
+        }
+        print('out', 'Already up to date.');
+        checkChallengeStep('pull');
         break;
 
       case 'fetch':
-        print('out', 'From https://github.com/you/my-app\n  main  ->  origin/main  (simulated)');
+        print('out', `From https://github.com/you/my-app`);
+        print('branch', `   ${randSha().slice(0,7)}..${randSha().slice(0,7)}  ${currentBranch} -> origin/${currentBranch}`);
+        checkChallengeStep('fetch');
         break;
 
       case 'clone':
-        print('out', `Cloning into '${args[0] || 'repo'}'...  (simulated)\ndone.`);
+        print('out', `Cloning into '${args[0] || 'repo'}'...`);
+        print('out', `remote: Enumerating objects: 10, done.`);
+        print('out', `remote: Counting objects: 100% (10/10), done.`);
+        print('out', `Receiving objects: 100% (10/10), 1.24 KiB | 1.24 MiB/s, done.`);
         break;
 
       case 'stash':
@@ -240,7 +392,10 @@ const Terminal = (() => {
         break;
 
       case 'cherry-pick':
-        print('out', `[${currentBranch} ${randSha().slice(0,7)}] Cherry-picked commit\n 1 file changed  (simulated)`);
+        const cpSha = randSha();
+        commits.push({ id: cpSha, msg: `Cherry-picked commit`, branch: currentBranch });
+        print('out', `[${currentBranch} ${cpSha.slice(0,7)}] Cherry-picked commit`);
+        print('out', ` 1 file changed, 4 insertions(+)`);
         checkChallengeStep('cherry-pick');
         break;
 
@@ -261,7 +416,6 @@ const Terminal = (() => {
         break;
 
       case 'reflog':
-        print('head', 'Reflog (simulated):');
         print('out', `${randSha().slice(0,7)} HEAD@{0}: commit: ${commits[commits.length-1]?.msg || 'Initial'}`);
         print('out', `${randSha().slice(0,7)} HEAD@{1}: checkout: moving to ${currentBranch}`);
         print('out', `${randSha().slice(0,7)} HEAD@{2}: rebase (start): checkout main`);
@@ -273,10 +427,9 @@ const Terminal = (() => {
         break;
 
       case 'blame':
-        print('head', `git blame output (simulated):`);
-        print('branch', `a1b2c3d4 (You  2026-05-11 09:00:00 +0000  1) function main() {`);
-        print('branch', `b2c3d4e5 (Amara 2026-05-10 14:30:00 +0000  2)   console.log("hello");`);
-        print('branch', `a1b2c3d4 (You  2026-05-11 09:00:00 +0000  3) }`);
+        print('branch', `${randSha().slice(0,8)} (You   2026-05-11 09:00:00 +0000  1) function main() {`);
+        print('branch', `${randSha().slice(0,8)} (Amara 2026-05-10 14:30:00 +0000  2)   console.log("hello");`);
+        print('branch', `${randSha().slice(0,8)} (You   2026-05-11 09:00:00 +0000  3) }`);
         break;
 
       case 'shortlog':
@@ -288,15 +441,25 @@ const Terminal = (() => {
         break;
 
       case 'mv':
-        print('out', `Renamed ${args[0] || 'file'} -> ${args[1] || 'newfile'}  (simulated)`);
+        print('out', `${args[0] || 'file'} -> ${args[1] || 'newfile'}`);
         break;
 
       case 'clean':
-        print('out', 'Would remove debug.log\nRun with -f to actually remove  (simulated)');
+        if (parts.includes('-f') || parts.includes('--force')) {
+          print('out', 'Removing debug.log');
+        } else {
+          print('out', 'Would remove debug.log');
+          print('info', 'hint: use -f to actually remove untracked files');
+        }
         break;
 
       case 'submodule':
-        print('out', 'Submodule management  (simulated)\nUse: git submodule add <url>');
+        if (args[0] === 'add') {
+          print('out', `Cloning into '${args[1] || 'submodule'}'...`);
+          print('out', `remote: Counting objects: 100% done.`);
+        } else {
+          print('out', 'Entering \'submodule\'');
+        }
         break;
 
       default:
@@ -313,9 +476,32 @@ const Terminal = (() => {
   // ── Git subcommand implementations ────────────
 
   function gitStatus() {
-    if (!repoInitialized) { print('err', 'fatal: not a git repository'); return; }
     print('head', `On branch ${currentBranch}`);
-    if (commits.length === 0) print('info', '\nNo commits yet\n');
+    if (commits.length === 0) {
+      print('info', 'No commits yet');
+      print('out', '');
+    } else {
+      print('out', `Your branch is up to date with 'origin/${currentBranch}'.`);
+      print('out', '');
+    }
+
+    // Show merge conflict state
+    if (conflictState && !conflictState.resolved) {
+      print('err', '\nYou have unmerged paths.');
+      print('info', '  (fix conflicts and run "git add <file>", then "git commit")');
+      print('info', '  (use "git merge --abort" to abort the merge)\n');
+      print('out', 'Unmerged paths:');
+      print('info', '  (use "git add <file>..." to mark resolution)');
+      print('err', `\tboth modified:   ${conflictState.file}`);
+      return;
+    }
+    if (conflictState?.resolved) {
+      print('out', '\nAll conflicts fixed but you are still merging.');
+      print('info', '  (use "git commit" to conclude the merge)\n');
+      print('out', 'Changes to be committed:');
+      print('branch', `\tmodified:   ${conflictState.file}`);
+      return;
+    }
 
     if (stagedFiles.length > 0) {
       print('out', '\nChanges to be committed:');
@@ -336,19 +522,31 @@ const Terminal = (() => {
   }
 
   function gitAdd(args, parts) {
-    if (!repoInitialized) { print('err', 'fatal: not a git repository'); return; }
     const target = args[0] || parts[2];
 
     if (target === '.' || target === '-A' || target === '--all') {
       stagedFiles = [...workingFiles];
-      print('out', '');
+      // Mark conflict resolved if active — this is the one case where we speak up
+      if (conflictState && !conflictState.resolved) {
+        conflictState = { ...conflictState, resolved: true };
+        print('info', `hint: staged conflict resolution in ${conflictState?.file || 'file'}`);
+        print('info', `hint: run "git commit" to complete the merge`);
+      }
+      // else: silent — real git add produces no output on success
     } else if (target) {
-      if (!workingFiles.includes(target)) {
+      // Accept the conflict file even if not in workingFiles list
+      const isConflictFile = conflictState && !conflictState.resolved && target === conflictState.file;
+      if (!isConflictFile && !workingFiles.includes(target)) {
         print('err', `fatal: pathspec '${target}' did not match any files`);
         return;
       }
       if (!stagedFiles.includes(target)) stagedFiles.push(target);
-      print('out', '');
+      if (isConflictFile) {
+        conflictState = { ...conflictState, resolved: true };
+        print('info', `hint: staged ${target} with conflict markers removed`);
+        print('info', `hint: run "git commit" to complete the merge`);
+      }
+      // else: silent
     } else {
       print('err', 'Nothing specified, nothing added.');
       return;
@@ -358,8 +556,31 @@ const Terminal = (() => {
   }
 
   function gitCommit(parts) {
-    if (!repoInitialized) { print('err', 'fatal: not a git repository'); return; }
-    if (stagedFiles.length === 0) { print('err', 'nothing to commit, working tree clean'); return; }
+    // Block commit if conflict exists but hasn't been resolved yet
+    if (conflictState && !conflictState.resolved) {
+      print('err', 'error: Committing is not possible because you have unmerged files.');
+      print('info', 'hint: Fix them up in the work tree, then use "git add <file>"');
+      print('info', 'hint: to mark resolution, then commit.');
+      return;
+    }
+
+    // Complete an in-progress merge (conflictState resolved)
+    if (conflictState?.resolved) {
+      const sha = randSha();
+      const mergedBranch = conflictState.branch;
+      conflictState = null;
+      stagedFiles   = [];
+      commits.push({ id: sha, msg: `Merge branch '${mergedBranch}'`, branch: currentBranch });
+      print('out', `[${currentBranch} ${sha.slice(0,7)}] Merge branch '${mergedBranch}'`);
+      print('out', ` 1 file changed`);
+      checkChallengeStep('commit');
+      return;
+    }
+
+    if (stagedFiles.length === 0) {
+      print('err', 'nothing to commit, working tree clean');
+      return;
+    }
 
     const mFlag = parts.indexOf('-m');
     let msg = 'Update';
@@ -367,9 +588,9 @@ const Terminal = (() => {
       msg = parts.slice(mFlag + 1).join(' ').replace(/^"|"$/g, '').replace(/^'|'$/g, '');
     }
 
-    const sha = randSha();
-    commits.push({ id: sha, msg, branch: currentBranch });
+    const sha   = randSha();
     const count = stagedFiles.length;
+    commits.push({ id: sha, msg, branch: currentBranch });
     stagedFiles = [];
 
     print('out', `[${currentBranch} ${sha.slice(0,7)}] ${msg}`);
@@ -380,57 +601,70 @@ const Terminal = (() => {
   }
 
   function gitLog(parts) {
-    if (!repoInitialized) { print('err', 'fatal: not a git repository'); return; }
     if (commits.length === 0) { print('info', 'No commits yet.'); return; }
 
-    const oneline = parts.includes('--oneline') || parts.includes('-1');
+    const oneline  = parts.includes('--oneline');
+    const limit    = parts.includes('-1') ? 1 : (parts.includes('-5') ? 5 : commits.length);
+    const reversed = [...commits].reverse().slice(0, limit);
 
-    [...commits].reverse().forEach(c => {
+    reversed.forEach((c, i) => {
+      // Only the very first (newest) commit gets the HEAD pointer
+      const headDeco = i === 0 ? ` (HEAD -> ${currentBranch}, origin/${currentBranch})` : '';
       if (oneline) {
-        print('branch', `${c.id.slice(0,7)} (HEAD -> ${c.branch}) ${c.msg}`);
+        print('branch', `${c.id.slice(0, 7)}${headDeco} ${c.msg}`);
       } else {
-        print('head', `commit ${c.id}`);
-        print('out', `Author: You <you@email.com>`);
-        print('out', `Date:   ${new Date().toUTCString()}\n`);
+        print('head', `commit ${c.id}${headDeco}`);
+        print('out', `Author: You <you@example.com>`);
+        print('out', `Date:   ${new Date().toDateString()} ${new Date().toTimeString().slice(0,8)} +0000\n`);
         print('out', `    ${c.msg}\n`);
       }
     });
   }
 
   function gitBranch(args, parts) {
-    if (!repoInitialized) { print('err', 'fatal: not a git repository'); return; }
-
     const deleteFlag = parts.includes('-d') || parts.includes('-D');
+    const allFlag    = parts.includes('-a') || parts.includes('--all');
+    const verboseFlag = parts.includes('-v') || parts.includes('-vv');
     const branchName = args.find(a => !a.startsWith('-'));
 
     if (deleteFlag && branchName) {
-      print('out', `Deleted branch ${branchName}`);
+      branches = branches.filter(b => b !== branchName);
+      print('out', `Deleted branch ${branchName} (was ${randSha().slice(0, 7)}).`);
       return;
     }
 
     if (branchName) {
-      print('out', `Branch '${branchName}' created`);
+      if (!branches.includes(branchName)) branches.push(branchName);
+      // silent — real git branch <name> produces no output on success
       checkChallengeStep('branch');
-    } else {
-      print('branch', `* ${currentBranch}`);
-      print('out', '  main');
+      return;
+    }
+
+    // List branches
+    branches.forEach(b => {
+      const sha = (commits[commits.length - 1]?.id || randSha()).slice(0, 7);
+      const label = verboseFlag ? `${b === currentBranch ? '* ' : '  '}${b.padEnd(24)} ${sha} ${commits[commits.length - 1]?.msg || ''}` : (b === currentBranch ? `* ${b}` : `  ${b}`);
+      b === currentBranch ? print('branch', label) : print('out', label);
+    });
+    if (allFlag) {
+      branches.forEach(b => print('out', `  remotes/origin/${b}`));
     }
   }
 
   function gitSwitch(args, parts) {
-    if (!repoInitialized) { print('err', 'fatal: not a git repository'); return; }
-
     const createFlag = parts.includes('-c') || parts.includes('-C');
-    const targetIdx = args.findIndex(a => !a.startsWith('-'));
-    const target = args[targetIdx];
+    const targetIdx  = args.findIndex(a => !a.startsWith('-'));
+    const target     = args[targetIdx];
 
     if (!target) { print('err', 'fatal: no branch name given'); return; }
 
     if (createFlag) {
+      if (!branches.includes(target)) branches.push(target);
       currentBranch = target;
       print('out', `Switched to a new branch '${target}'`);
       checkChallengeStep('branch');
     } else {
+      if (!branches.includes(target)) branches.push(target);
       currentBranch = target;
       print('out', `Switched to branch '${target}'`);
     }
@@ -438,17 +672,17 @@ const Terminal = (() => {
   }
 
   function gitCheckout(args, parts) {
-    if (!repoInitialized) { print('err', 'fatal: not a git repository'); return; }
-
     const createFlag = parts.includes('-b') || parts.includes('-B');
-    const target = args.find(a => !a.startsWith('-'));
+    const target     = args.find(a => !a.startsWith('-'));
     if (!target) { print('err', 'fatal: no target given'); return; }
 
     if (createFlag) {
+      if (!branches.includes(target)) branches.push(target);
       currentBranch = target;
       print('out', `Switched to a new branch '${target}'`);
       checkChallengeStep('branch');
     } else {
+      if (!branches.includes(target)) branches.push(target);
       currentBranch = target;
       print('out', `Switched to branch '${target}'`);
     }
@@ -456,30 +690,64 @@ const Terminal = (() => {
   }
 
   function gitMerge(args) {
-    if (!repoInitialized) { print('err', 'fatal: not a git repository'); return; }
+    // Handle --abort
+    if (args[0] === '--abort' || args.includes('--abort')) {
+      if (!conflictState) {
+        print('err', 'fatal: There is no merge in progress (MERGE_HEAD missing).');
+        return;
+      }
+      conflictState = null;
+      print('out', 'Merge aborted.');
+      return;
+    }
+
+    // Handle --continue (alias for git commit in merge context)
+    if (args[0] === '--continue' || args.includes('--continue')) {
+      if (!conflictState) { print('err', 'fatal: There is no merge in progress.'); return; }
+      if (!conflictState.resolved) {
+        print('err', 'error: Committing is not possible because you have unmerged files.');
+        print('info', 'hint: Stage the resolved file first: git add ' + conflictState.file);
+        return;
+      }
+      gitCommit([]);
+      return;
+    }
+
     const target = args.find(a => !a.startsWith('-'));
-    if (!target) { print('err', 'Merge requires a branch name'); return; }
+    if (!target) { print('err', 'error: No branch name given to merge.'); return; }
 
-    if (target === '--abort') { print('out', 'Merge aborted.'); return; }
+    // Simulate a merge conflict for known conflict-producing branches
+    // (detected from lesson task patterns in autoInitIfNeeded)
+    if (conflictBranches.has(target) || target.includes('conflict')) {
+      conflictState = { branch: target, file: 'app.js', resolved: false };
+      print('out', `Auto-merging app.js`);
+      print('err', `CONFLICT (content): Merge conflict in app.js`);
+      print('err', `Automatic merge failed; fix conflicts and then commit the result.`);
+      checkChallengeStep('merge');
+      return;
+    }
 
+    // Normal fast-forward / ort merge
     const sha = randSha();
     commits.push({ id: sha, msg: `Merge branch '${target}'`, branch: currentBranch });
-    print('out', `Merge made by the 'ort' strategy.\n 1 file changed, 3 insertions(+)`);
+    print('out', `Updating ${commits[commits.length-2]?.id.slice(0,7) || 'a1b2c3d'}..${sha.slice(0,7)}`);
+    print('out', `Merge made by the 'ort' strategy.`);
+    print('out', ` 1 file changed, 3 insertions(+), 1 deletion(-)`);
     checkChallengeStep('merge');
   }
 
   function gitRemote(args, parts) {
     if (args[0] === 'add') {
-      print('out', `Remote '${args[1] || 'origin'}' added  (simulated)`);
+      // real git remote add is silent on success
     } else if (args[0] === '-v' || args[0] === 'show') {
-      print('out', 'origin  https://github.com/you/my-app.git (fetch)\norigin  https://github.com/you/my-app.git (push)');
+      print('out', 'origin\thttps://github.com/you/my-app.git (fetch)');
+      print('out', 'origin\thttps://github.com/you/my-app.git (push)');
     } else {
       print('out', 'origin');
     }
   }
 
   function gitPush(args, parts) {
-    if (!repoInitialized) { print('err', 'fatal: not a git repository'); return; }
     if (commits.length === 0) { print('err', 'error: nothing to push'); return; }
 
     const force = parts.includes('--force') || parts.includes('-f');
@@ -496,8 +764,6 @@ const Terminal = (() => {
   }
 
   function gitStash(args, parts) {
-    if (!repoInitialized) { print('err', 'fatal: not a git repository'); return; }
-
     const sub = args[0];
     if (!sub || sub === 'push') {
       if (stagedFiles.length === 0 && workingFiles.length === 0) {
@@ -534,7 +800,6 @@ const Terminal = (() => {
   }
 
   function gitDiff(args, parts) {
-    if (!repoInitialized) { print('err', 'fatal: not a git repository'); return; }
     const staged = parts.includes('--staged') || parts.includes('--cached');
     const files = staged ? stagedFiles : workingFiles;
 
@@ -552,25 +817,23 @@ const Terminal = (() => {
   }
 
   function gitRestore(args, parts) {
-    if (!repoInitialized) { print('err', 'fatal: not a git repository'); return; }
     const staged = parts.includes('--staged');
-    const file = args.find(a => !a.startsWith('-'));
+    const file   = args.find(a => !a.startsWith('-'));
 
     if (staged) {
       if (file) {
         stagedFiles = stagedFiles.filter(f => f !== file);
-        print('out', `Unstaged ${file}`);
       } else {
         stagedFiles = [];
-        print('out', 'All files unstaged');
       }
+      // real git restore --staged is silent on success
     } else {
-      print('out', `Restored ${file || 'files'} from HEAD`);
+      // real git restore is silent on success
     }
+    checkChallengeStep('restore');
   }
 
   function gitReset(args, parts) {
-    if (!repoInitialized) { print('err', 'fatal: not a git repository'); return; }
     const hard = parts.includes('--hard');
     const soft = parts.includes('--soft');
 
@@ -589,15 +852,17 @@ const Terminal = (() => {
   }
 
   function gitRebase(args, parts) {
-    if (!repoInitialized) { print('err', 'fatal: not a git repository'); return; }
-
     if (args[0] === '--abort') { print('out', 'Rebase aborted. HEAD back to original.'); return; }
     if (args[0] === '--continue') { print('out', 'Continuing rebase after conflict resolution...'); return; }
     if (parts.includes('-i') || parts.includes('--interactive')) {
-      print('head', 'Interactive rebase (simulated — in real Git this opens your $EDITOR)');
-      print('out', 'pick a1b2c3d First commit\nsquash b2c3d4e WIP more work\nsquash c3d4e5f fix typo\n\n# Reorder and save to apply');
-      print('info', '(Simulate: changed to squash — all commits combined into one)');
-      print('out', `\nSuccessfully rebased and updated refs/heads/${currentBranch}`);
+      print('info', '# Note: In real Git, this opens your $EDITOR with a list of commits.');
+      print('info', '# Simulating interactive rebase with squash applied...');
+      print('out', '');
+      print('out', 'pick a1b2c3 Initial work');
+      print('out', 'squash b2c3d4 WIP: more work');
+      print('out', 'squash c3d4e5 fix typo');
+      print('out', '');
+      print('out', `Successfully rebased and updated refs/heads/${currentBranch}.`);
       App?.awardAchievement('rebaser');
       return;
     }
@@ -753,6 +1018,20 @@ const Terminal = (() => {
     print('out', '  help                         Show this help');
   }
 
+  // Called by App.checkTerminalTask when the user types a command that skips
+  // ahead of an incomplete earlier task. Prints the interactive choice and
+  // stores the original command so execute() can forward or cancel it.
+  function blockWithChoice(rawCmd, blocker, blockerIdx) {
+    pendingBlockedCmd = rawCmd;
+    print('out', '');
+    print('info', `⚠️  Task ${blockerIdx + 1} is not done yet:`);
+    print('info', `    "${blocker.instruction}"`);
+    print('info', `    Run:  ${blocker.command}`);
+    print('out', '');
+    print('info', `    Type  continue  to proceed anyway`);
+    print('info', `    Type  back      to scroll to that task`);
+  }
+
   function checkChallengeStep(action) {
     if (typeof App === 'undefined') return;
     App.onChallengeAction(action);
@@ -766,5 +1045,5 @@ const Terminal = (() => {
   function getCurrentBranch() { return currentBranch; }
   function getCommits() { return commits; }
 
-  return { init, handleKey, execute, print, clear, getCurrentBranch, getCommits };
+  return { init, handleKey, execute, print, clear, getCurrentBranch, getCommits, blockWithChoice };
 })();
