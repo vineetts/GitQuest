@@ -484,6 +484,58 @@ const App = (() => {
     } else if (currentLevelData.gitState) {
       GitVisualizer.render(document.getElementById('git-svg'), currentLevelData.gitState, currentPersona);
     }
+
+    // Panel hints — guide user's eyes to the right panel
+    addPanelHints(step);
+  }
+
+  // ── Panel hints ──────────────────────────────────────────
+  // Injects a contextual hint into the lesson stage pointing
+  // the learner at the correct right-panel tab (Graph or Terminal).
+  function addPanelHints(step) {
+    const stage = document.getElementById('lesson-stage');
+    if (!stage) return;
+
+    // Terminal hint: steps where learner should be typing commands
+    const TERMINAL_TYPES = new Set(['terminal-practice', 'challenge', 'commitform', 'conflictresolver', 'hotfix', 'crisis']);
+    // Graph hint: steps where the git graph is the primary visual to watch
+    // Explicitly listed — quiz/dragdrop/ide/scenario have their own UI, no graph hint
+    const GRAPH_TYPES    = new Set(['story', 'concept', 'visual', 'interactive']);
+
+    const wantsTerminal = TERMINAL_TYPES.has(step.type);
+    const wantsGraph    = GRAPH_TYPES.has(step.type) && !!(step.gitState || currentLevelData?.gitState);
+
+    if (wantsTerminal) {
+      const hint = document.createElement('div');
+      hint.className = 'panel-hint terminal-hint';
+      hint.innerHTML = `
+        <span class="panel-hint-icon">💻</span>
+        <span>Try these commands in the <strong>Terminal tab →</strong> on the right.
+          Watch what Git actually prints — those messages are part of what you're learning.</span>
+      `;
+      stage.appendChild(hint);
+      pulseTab('terminal');
+    } else if (wantsGraph) {
+      const hint = document.createElement('div');
+      hint.className = 'panel-hint graph-hint';
+      hint.innerHTML = `
+        <span class="panel-hint-icon">🌿</span>
+        <span>Check the <strong>Git Graph →</strong> on the right — it updates as you go.
+          See how commits and branches connect visually.</span>
+      `;
+      stage.appendChild(hint);
+      pulseTab('graph');
+    }
+  }
+
+  // Briefly highlight the relevant viz tab so the learner notices it
+  function pulseTab(which) {
+    const tabs = document.querySelectorAll('.viz-tab');
+    tabs.forEach(t => t.classList.remove('tab-attention'));
+    const target = Array.from(tabs).find(t => t.getAttribute('onclick')?.includes(which));
+    if (!target) return;
+    target.classList.add('tab-attention');
+    setTimeout(() => target.classList.remove('tab-attention'), 4000);
   }
 
   function jumpToStep(i) { renderStep(i); }
@@ -1250,9 +1302,6 @@ const App = (() => {
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:10px">${stepsHtml}</div>
-      <p style="font-size:.8rem;color:var(--text-muted);margin-top:12px">
-        💡 Use the Terminal tab to practice the actual commands, then mark each step done.
-      </p>
     `;
   }
 
@@ -1292,7 +1341,7 @@ const App = (() => {
           <h3 class="tp-title">${escHtml(step.title)}</h3>
         </div>
         <div class="tp-context">${escHtml(context)}</div>
-        <div class="tp-pointer">👇 Type each command in the <strong>Terminal tab →</strong></div>
+        <div class="tp-pointer">👇 Type each command below directly in the <strong>Terminal tab →</strong> on the right. Watch what Git prints back — those messages are real.</div>
         <div class="tp-tasks">${tasksHtml}</div>
         <div class="tp-progress-wrap">
           <div class="tp-progress-bar" id="tp-progress-bar" style="width:0%;background:${color}"></div>
