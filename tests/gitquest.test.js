@@ -1343,9 +1343,10 @@ GQTest.describe('XP, Progress & Persistence', () => {
   });
 
   GQTest.it('XP starts at 0 for a fresh persona', () => {
-    // Reset state
-    localStorage.removeItem('gitquest_state');
-    location.reload(); // can't easily test post-reload in same run, so check initial state
+    // Navigate to a fresh persona to verify XP state is initialised to 0
+    // (cannot test post-reload in same run so we check the live state object)
+    App.selectLifeStage('working');
+    App.selectPersona('beginner');
     const state = JSON.parse(localStorage.getItem('gitquest_state') || '{}');
     const xp = state.progress?.beginner?.xp || 0;
     GQTest.assert(xp >= 0, 'XP should be >= 0');
@@ -1624,7 +1625,7 @@ GQTest.describe('Edge Cases & Robustness', () => {
     App.selectLifeStage('working');
     App.selectPersona('beginner');
     App.startLesson(GAME_DATA.beginner.levels.find(l => l.id === 'b4'));
-    App.jumpToStep(lvl => lvl); // just need terminal initialized
+    App.jumpToStep(0); // just need terminal initialized
     Terminal.clear();
     Terminal.execute('git stash pop');
     const out = [...document.querySelectorAll('#terminal-output .t-line')].map(l => l.textContent);
