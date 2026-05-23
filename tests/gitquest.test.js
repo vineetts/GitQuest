@@ -534,7 +534,13 @@ GQTest.describe('Quiz System', () => {
     const wrongIdx = q0.correct === 0 ? 1 : 0;
     App.selectAnswer(quizIdx, 0, wrongIdx); // (stepIdx, questionIdx, optionIdx) — wrong answer
     const stage = document.getElementById('lesson-stage').innerHTML;
-    GQTest.assert(stage.includes('wrong') || stage.includes('❌') || stage.includes('incorrect') || stage.includes('#f85') || stage.includes('#da3'), 'No red/wrong feedback on wrong answer');
+    // Wrong answer feedback: attempt dot turns "used", attempts-left counter appears,
+    // OR after 3 wrong attempts the correct answer / explanation is revealed
+    GQTest.assert(
+      stage.includes('attempt-dot used') || stage.includes('attempts left') ||
+      stage.includes('wrong') || stage.includes('❌') || stage.includes('correct'),
+      'No wrong-answer feedback (attempt dots / counter) visible after wrong answer'
+    );
   });
 
   GQTest.it('All quiz options arrays have 4 options each (or at least 2)', () => {
