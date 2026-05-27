@@ -14,7 +14,7 @@ const GitVisualizer = (() => {
   const ROW_H        = 66;
   const LABEL_ZONE   = 96;   // left reserved for branch-name pills
   const MSG_PAD      = 20;   // gap between last lane and commit messages
-  const TOP_PAD      = 44;
+  const TOP_PAD      = 64;   // extra room for focus-caption banner
   const BOTTOM_PAD   = 24;
 
   let _tooltip = null;
@@ -125,6 +125,9 @@ const GitVisualizer = (() => {
     // ── edges ──
     const edgeG = mkSvg('g', svgEl);
 
+    // Edges start drawing after ALL nodes have popped in
+    const edgeBaseDelay = commits.length * 0.15 + 0.3;
+
     commits.forEach((c, idx) => {
       const cx    = originX + branchLane[c.branch] * LANE_W + LANE_W / 2;
       const cy    = TOP_PAD + rows[c.id] * ROW_H;
@@ -135,7 +138,7 @@ const GitVisualizer = (() => {
         const p   = commitMap[c.parent];
         const px  = originX + branchLane[p.branch] * LANE_W + LANE_W / 2;
         const py  = TOP_PAD + rows[p.id] * ROW_H;
-        drawEdge(edgeG, cx, cy + NODE_R, px, py - NODE_R, color, false, mid, idx);
+        drawEdge(edgeG, cx, cy + NODE_R, px, py - NODE_R, color, false, mid, idx, edgeBaseDelay);
       }
 
       if (c.merge && commitMap[c.merge]) {
@@ -144,7 +147,7 @@ const GitVisualizer = (() => {
         const my     = TOP_PAD + rows[m.id] * ROW_H;
         const mcol   = laneColors[m.branch] || BRANCH_COLORS[1];
         const mmid   = `gq-arrow-${m.branch.replace(/[^a-z0-9]/gi, '_')}`;
-        drawEdge(edgeG, cx, cy + NODE_R, mx, my - NODE_R, mcol, true, mmid, idx);
+        drawEdge(edgeG, cx, cy + NODE_R, mx, my - NODE_R, mcol, true, mmid, idx, edgeBaseDelay);
       }
     });
 
@@ -182,11 +185,11 @@ const GitVisualizer = (() => {
         filter: isHEAD ? 'url(#gq-glow)' : 'none'
       });
 
-      // Staggered pop-in animation
+      // Staggered pop-in animation — slow enough to follow each commit appearing
       circle.style.opacity = '0';
       circle.style.transform = `scale(0.2)`;
       circle.style.transformOrigin = `${cx}px ${cy}px`;
-      circle.style.transition = `opacity 0.28s ${i * 0.055}s, transform 0.28s ${i * 0.055}s cubic-bezier(.34,1.56,.64,1)`;
+      circle.style.transition = `opacity 0.38s ${i * 0.15}s, transform 0.38s ${i * 0.15}s cubic-bezier(.34,1.56,.64,1)`;
       requestAnimationFrame(() => {
         circle.style.opacity = '1';
         circle.style.transform = 'scale(1)';
@@ -275,14 +278,47 @@ const GitVisualizer = (() => {
       });
     });
 
+    // ── focus caption banner ──
+    if (gitState.focus) {
+      const capG   = mkSvg('g', svgEl);
+      const capTxt = gitState.focus.length > 68 ? gitState.focus.slice(0, 67) + '…' : gitState.focus;
+      const capW   = Math.min(capTxt.length * 6.2 + 28, totalW - 16);
+      const capX   = totalW / 2 - capW / 2;
+      mkSvg('rect', capG, {
+        x: capX, y: 6, width: capW, height: 26, rx: 13,
+        fill: 'rgba(88,166,255,0.1)',
+        stroke: 'rgba(88,166,255,0.28)', 'stroke-width': '1'
+      });
+      const ct = mkSvg('text', capG, {
+        x: totalW / 2, y: 23,
+        fill: '#79c0ff', 'font-size': '9.5', 'font-weight': '600',
+        'font-family': 'Inter, sans-serif',
+        'text-anchor': 'middle', 'dominant-baseline': 'middle'
+      });
+      ct.textContent = '📍 ' + capTxt;
+    }
+
     // ── branch label pills (left zone) ──
     const labelG = mkSvg('g', svgEl);
     const branches = gitState.branches || {};
 
+    // Pre-compute which branches share the same commit (for pill stacking)
+    const pillsAtCommit = {};
+    Object.entries(branches).forEach(([name, targetId]) => {
+      if (!targetId || !commitMap[targetId]) return;
+      if (!pillsAtCommit[targetId]) pillsAtCommit[targetId] = [];
+      pillsAtCommit[targetId].push(name);
+    });
+
     Object.entries(branches).forEach(([name, targetId]) => {
       if (!commitMap[targetId]) return;
-      const tc   = commitMap[targetId];
-      const ty   = TOP_PAD + rows[tc.id] * ROW_H;
+      const tc      = commitMap[targetId];
+      const pills   = pillsAtCommit[targetId] || [name];
+      const pillIdx = pills.indexOf(name);
+      const total   = pills.length;
+      // Stack vertically when multiple branches point to the same commit
+      const stackOff = total > 1 ? (pillIdx - (total - 1) / 2) * 22 : 0;
+      const ty   = TOP_PAD + rows[tc.id] * ROW_H + stackOff;
       const isCur = gitState.HEAD === name;
       const color = laneColors[tc.branch] || BRANCH_COLORS[0];
 
@@ -333,7 +369,7 @@ const GitVisualizer = (() => {
   }
 
   // ── edge drawing ──────────────────────────────
-  function drawEdge(parent, x1, y1, x2, y2, color, isDashed, markerId, idx) {
+  function drawEdge(parent, x1, y1, x2, y2, color, isDashed, markerId, idx, baseDelay = 0.3) {
     const sameLane = Math.abs(x1 - x2) < 6;
     let d;
     if (sameLane) {
@@ -355,12 +391,12 @@ const GitVisualizer = (() => {
       'marker-end': `url(#${markerId})`
     });
 
-    // Animate draw-on
+    // Animate draw-on — starts after all nodes have appeared
     try {
       const len = path.getTotalLength();
       path.style.strokeDasharray = `${len} ${len}`;
       path.style.strokeDashoffset = `${len}`;
-      path.style.transition = `stroke-dashoffset 0.45s ${idx * 0.04 + 0.05}s ease`;
+      path.style.transition = `stroke-dashoffset 0.6s ${(baseDelay + idx * 0.12).toFixed(2)}s ease`;
       requestAnimationFrame(() => { path.style.strokeDashoffset = '0'; });
     } catch(e) { /* no-op if getTotalLength unavailable */ }
   }

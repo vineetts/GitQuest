@@ -1077,8 +1077,12 @@ body {
   animation: tabPulse 1.2s ease 3;
 }
 
-.viz-panel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+.viz-panel { display: none; flex-direction: column; flex: 1; overflow-y: auto; overflow-x: hidden; }
 .viz-panel.active { display: flex; }
+/* Thin scrollbar so tall graphs (5+ commits) don't clip */
+.viz-panel::-webkit-scrollbar { width: 4px; }
+.viz-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 2px; }
+.viz-panel::-webkit-scrollbar-track { background: transparent; }
 
 /* ─── Panel hint — contextual pointer inside lesson stage ─── */
 /* Panel hints — same visual style as .tp-pointer (dashed border, muted) */

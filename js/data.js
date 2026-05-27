@@ -271,6 +271,7 @@ The staging area is Git's superpower. Unlike most VCS tools, it gives you fine-g
           { cmd: 'git log --oneline',       desc: 'Compact history view' }
         ],
         gitState: {
+          focus: 'One commit = one snapshot: author, message, and what changed',
           commits: [{ id: 'a1b2c3d', msg: 'Add homepage', author: 'You', time: 'just now', branch: 'main' }],
           branches: { main: 'a1b2c3d' }, HEAD: 'main'
         },
@@ -343,6 +344,7 @@ Use the imperative mood — "Add feature" not "Added feature". Imagine completin
           { cmd: 'git checkout <name>',    desc: 'Older way to switch branches' }
         ],
         gitState: {
+          focus: 'feature/nav is isolated from main until you choose to merge',
           commits: [
             { id: 'c0', msg: 'Initial commit', branch: 'main', parent: null },
             { id: 'c1', msg: 'Add homepage', branch: 'main', parent: 'c0' },
@@ -421,6 +423,7 @@ Most teams use a naming convention:
           { cmd: 'git log --graph --oneline', desc: 'Visualize branch history' }
         ],
         gitState: {
+          focus: 'Merge commit reunites feature/nav with main\'s history',
           commits: [
             { id: 'c0', msg: 'Initial commit', branch: 'main', parent: null },
             { id: 'c1', msg: 'Add homepage', branch: 'main', parent: 'c0' },
@@ -496,6 +499,7 @@ The commits from the branch are still in history. The branch pointer itself was 
           { cmd: 'git fetch',                   desc: 'Download without merging' }
         ],
         gitState: {
+          focus: 'origin/main mirrors GitHub; local main is your working copy',
           commits: [
             { id: 'c0', msg: 'Initial commit', branch: 'main', parent: null },
             { id: 'c1', msg: 'Add homepage', branch: 'main', parent: 'c0' }
@@ -568,7 +572,7 @@ The <code>-u</code> flag sets the "upstream" — after this, bare <code>git push
           { cmd: 'touch .gitignore', desc: 'Create the gitignore file' },
           { cmd: 'git rm --cached <file>', desc: 'Untrack a file without deleting it' }
         ],
-        gitState: { commits: [{ id: 'c0', msg: 'Add .gitignore', branch: 'main', parent: null }], branches: { main: 'c0' }, HEAD: 'main' },
+        gitState: { focus: '.gitignore prevents node_modules and .env from ever being tracked', commits: [{ id: 'c0', msg: 'Add .gitignore', branch: 'main', parent: null }], branches: { main: 'c0' }, HEAD: 'main' },
         steps: [
           {
             type: 'story',
@@ -624,6 +628,7 @@ A <code>!</code> prefix negates (un-ignores) a pattern.
         tip: 'In VS Code, M = Modified, A = Added, D = Deleted, U = Untracked. Click any file to see its diff.',
         commands: [],
         gitState: {
+          focus: 'Two commits — VS Code shows diff, blame, and history for each',
           commits: [
             { id: 'c0', msg: 'Initial commit', branch: 'main', parent: null },
             { id: 'c1', msg: 'Add styles', branch: 'main', parent: 'c0' }
@@ -692,6 +697,7 @@ A <code>!</code> prefix negates (un-ignores) a pattern.
           { cmd: 'git push -u origin main', desc: 'Push' }
         ],
         gitState: {
+          focus: 'Full workflow: branch → commit → merge → push to origin',
           commits: [
             { id: 'c0', msg: 'Initial commit', branch: 'main', parent: null },
             { id: 'c1', msg: 'Add index.html', branch: 'main', parent: 'c0' },
@@ -749,6 +755,7 @@ A <code>!</code> prefix negates (un-ignores) a pattern.
           { cmd: 'git push origin feature/xyz', desc: 'Push feature to remote' }
         ],
         gitState: {
+          focus: 'Two teams work in parallel — both branch from the same main commit',
           commits: [
             { id: 'c0', msg: 'Initial commit', branch: 'main', parent: null },
             { id: 'c1', msg: 'Release v1.0', branch: 'main', parent: 'c0' },
@@ -812,6 +819,7 @@ Overkill for most web apps but useful for mobile apps or libraries that ship ver
           { cmd: 'git merge --abort',  desc: 'Cancel the merge entirely' }
         ],
         gitState: {
+          focus: 'Both branches edited the same line — only one version can win',
           commits: [
             { id: 'c0', msg: 'Initial', branch: 'main', parent: null },
             { id: 'c1', msg: 'Add greeting', branch: 'main', parent: 'c0' },
@@ -891,6 +899,7 @@ You have 3 options:
           { cmd: 'git merge --no-ff',      desc: 'Force a merge commit' }
         ],
         gitState: {
+          focus: 'Rebase replays feature/search on top of latest main for clean history',
           commits: [
             { id: 'c0', msg: 'Initial', branch: 'main', parent: null },
             { id: 'c1', msg: 'Main: update footer', branch: 'main', parent: 'c0' },
@@ -959,6 +968,7 @@ You have 3 options:
           { cmd: 'git stash apply stash@{2}',  desc: 'Apply a specific stash' }
         ],
         gitState: {
+          focus: 'Stash saves WIP aside so you can switch context instantly',
           commits: [{ id: 'c0', msg: 'Last stable commit', branch: 'main', parent: null }],
           branches: { main: 'c0' }, HEAD: 'main'
         },
@@ -1014,6 +1024,7 @@ Think of it as a clipboard: you copy your WIP aside, do urgent work, then paste 
           { cmd: 'gh pr create',                desc: 'Create PR from GitHub CLI' }
         ],
         gitState: {
+          focus: 'feature/login awaits review — CI checks must pass before merge',
           commits: [
             { id: 'c0', msg: 'Initial commit', branch: 'main', parent: null },
             { id: 'c1', msg: 'Add login feature', branch: 'feature/login', parent: 'c0' },
@@ -1090,6 +1101,7 @@ Think of it as a clipboard: you copy your WIP aside, do urgent work, then paste 
           { cmd: 'git reflog',              desc: 'History of HEAD movements' }
         ],
         gitState: {
+          focus: 'git revert adds a new commit to undo, keeping full history intact',
           commits: [
             { id: 'c0', msg: 'Working state', branch: 'main', parent: null },
             { id: 'c1', msg: 'Oops: wrong file committed', branch: 'main', parent: 'c0' }
@@ -1150,6 +1162,7 @@ Think of it as a clipboard: you copy your WIP aside, do urgent work, then paste 
           { cmd: 'git cherry-pick --abort',    desc: 'Cancel if conflict' }
         ],
         gitState: {
+          focus: 'Cherry-pick copies the typo fix to main without merging dark mode',
           commits: [
             { id: 'c0', msg: 'Initial', branch: 'main', parent: null },
             { id: 'c1', msg: 'main: add footer', branch: 'main', parent: 'c0' },
@@ -1196,6 +1209,7 @@ Think of it as a clipboard: you copy your WIP aside, do urgent work, then paste 
           { cmd: 'git tag',                     desc: 'List all tags' }
         ],
         gitState: {
+          focus: 'Tag v1.0.0 pins this exact commit for audits and rollbacks',
           commits: [
             { id: 'c0', msg: 'Initial', branch: 'main', parent: null },
             { id: 'c1', msg: 'v1.0.0 Release', branch: 'main', parent: 'c0', tag: 'v1.0.0' }
@@ -1232,6 +1246,7 @@ Think of it as a clipboard: you copy your WIP aside, do urgent work, then paste 
         tip: 'GitLens extension (free) adds inline blame, history explorer, and remote tracking — highly recommended.',
         commands: [],
         gitState: {
+          focus: 'IntelliJ shows inline blame for every line in the diff',
           commits: [
             { id: 'c0', msg: 'Initial', branch: 'main', parent: null },
             { id: 'c1', msg: 'Refactor auth', branch: 'main', parent: 'c0' }
@@ -1269,6 +1284,7 @@ Think of it as a clipboard: you copy your WIP aside, do urgent work, then paste 
         tip: 'In the real world, conflicts are opportunities to communicate. Talk to your teammate before deciding how to resolve.',
         commands: [],
         gitState: {
+          focus: 'feature/payments merges back to main after the conflict is resolved',
           commits: [
             { id: 'c0', msg: 'Initial', branch: 'main', parent: null },
             { id: 'c1', msg: 'Your feature', branch: 'feature/payments', parent: 'c0' },
@@ -1323,7 +1339,7 @@ Think of it as a clipboard: you copy your WIP aside, do urgent work, then paste 
           { cmd: 'git cat-file -p <sha>',  desc: 'Pretty-print object content' },
           { cmd: 'git ls-tree HEAD',        desc: 'List tree of current commit' }
         ],
-        gitState: { commits: [{ id: 'abc123', msg: 'Add homepage', branch: 'main', parent: null }], branches: { main: 'abc123' }, HEAD: 'main' },
+        gitState: { focus: 'Every commit points to a tree which points to blobs (file content)', commits: [{ id: 'abc123', msg: 'Add homepage', branch: 'main', parent: null }], branches: { main: 'abc123' }, HEAD: 'main' },
         steps: [
           {
             type: 'story',
@@ -1372,6 +1388,7 @@ This is why Git is so efficient: unchanged files reuse the same blobs. A commit 
           { cmd: 'git rebase -i --autosquash', desc: 'Auto-squash fixup commits' }
         ],
         gitState: {
+          focus: '3 WIP commits squashed into 1 clean commit before the PR',
           commits: [
             { id: 'c0', msg: 'Last main commit', branch: 'main', parent: null },
             { id: 'c1', msg: 'WIP: start feature', branch: 'feature/search', parent: 'c0' },
@@ -1440,6 +1457,7 @@ This is why Git is so efficient: unchanged files reuse the same blobs. A commit 
           { cmd: 'git bisect reset',     desc: 'End bisect, restore HEAD' }
         ],
         gitState: {
+          focus: 'Bisect checks midpoints to find the bad commit in ~7 steps, not 80',
           commits: [
             { id: 'c0', msg: 'v1.0 — known good', branch: 'main', parent: null },
             { id: 'c4', msg: 'current — broken', branch: 'main', parent: 'c0' }
@@ -1503,7 +1521,7 @@ Git runs your test suite at each midpoint. Exit code 0 = good, non-zero = bad. F
           { cmd: 'ls .git/hooks/', desc: 'See available hook samples' },
           { cmd: 'chmod +x .git/hooks/pre-commit', desc: 'Make hook executable' }
         ],
-        gitState: { commits: [{ id: 'c0', msg: 'Setup hooks', branch: 'main', parent: null }], branches: { main: 'c0' }, HEAD: 'main' },
+        gitState: { focus: 'Pre-commit hook runs lint before every commit — blocks bad code', commits: [{ id: 'c0', msg: 'Setup hooks', branch: 'main', parent: null }], branches: { main: 'c0' }, HEAD: 'main' },
         steps: [
           {
             type: 'story',
@@ -1564,6 +1582,7 @@ fi</code>
           { cmd: 'git cherry-pick <sha>',               desc: 'Port fix to develop too' }
         ],
         gitState: {
+          focus: 'Hotfix branches from v1.0.0 tag, not from main with unreleased features',
           commits: [
             { id: 'c0', msg: 'v1.0.0 — production', branch: 'main', parent: null, tag: 'v1.0.0' },
             { id: 'c1', msg: 'Feature A (unreleased)', branch: 'main', parent: 'c0' },
@@ -1605,7 +1624,7 @@ fi</code>
         type: 'ide',
         tip: 'Branch protection rules on GitHub are the ultimate enforcement mechanism — they can\'t be bypassed by accident (or laziness).',
         commands: [],
-        gitState: { commits: [{ id: 'c0', msg: 'main protected', branch: 'main', parent: null }], branches: { main: 'c0' }, HEAD: 'main' },
+        gitState: { focus: 'Branch protection enforces PR reviews — even admins can\'t bypass it', commits: [{ id: 'c0', msg: 'main protected', branch: 'main', parent: null }], branches: { main: 'c0' }, HEAD: 'main' },
         steps: [
           {
             type: 'story',
@@ -1660,6 +1679,7 @@ When a PR touches owned files, the CODEOWNERS are automatically added as require
         tip: 'IntelliJ\'s Git tool window (Alt+9 / Cmd+9) has the best visual log graph of any IDE — use it for complex merges.',
         commands: [],
         gitState: {
+          focus: 'feature/pay branches from main while auth is added — both tracked',
           commits: [
             { id: 'c0', msg: 'Initial', branch: 'main', parent: null },
             { id: 'c1', msg: 'Add auth', branch: 'main', parent: 'c0' },
@@ -1713,6 +1733,7 @@ Install the GitHub plugin → create/review PRs without leaving the IDE. Comment
           { cmd: 'git rebase --abort',      desc: 'Cancel a rebase gone wrong' }
         ],
         gitState: {
+          focus: 'reflog recovered the "lost" commits — nothing is ever truly gone',
           commits: [
             { id: 'c0', msg: 'Good state (pre-rebase)', branch: 'main', parent: null },
             { id: 'c1', msg: 'After recovery via reflog', branch: 'feature/xyz', parent: 'c0' }

@@ -35,6 +35,7 @@ GAME_DATA.innovator = {
         { cmd: 'git push origin short/login-button && gh pr create', desc: 'PR same day' }
       ],
       gitState: {
+        focus: 'All features land on trunk — flags hide them until ready',
         commits: [
           { id: 'c0', msg: 'Trunk: stable base', branch: 'main', parent: null },
           { id: 'c1', msg: 'feat: login button (behind flag)', branch: 'main', parent: 'c0' },
@@ -157,6 +158,7 @@ With flags, you can deploy <em>every hour</em> and release <em>when the business
         { cmd: 'kubectl apply -f k8s/ (done by ArgoCD)', desc: 'ArgoCD syncs automatically' }
       ],
       gitState: {
+        focus: 'git push triggers k8s deployment automatically',
         commits: [
           { id: 'c0', msg: 'Initial k8s manifests', branch: 'main', parent: null },
           { id: 'c1', msg: 'scale: api replicas 3→5', branch: 'main', parent: 'c0' },
@@ -256,9 +258,10 @@ To scale the API: edit <code>replicas: 5</code> in deployment.yaml, commit, push
         { cmd: 'npx nx graph',                  desc: 'Visualize the dependency graph' }
       ],
       gitState: {
+        focus: 'One commit touches packages in ui-lib and web-app',
         commits: [
           { id: 'c0', msg: 'chore: init monorepo with Nx', branch: 'main', parent: null },
-          { id: 'c1', msg: 'feat(ui-lib): add Button component', branch: 'main', parent: 'c0' },
+          { id: 'c1', msg: 'feat(ui-lib): Button component', branch: 'main', parent: 'c0' },
           { id: 'c2', msg: 'feat(web-app): use new Button', branch: 'main', parent: 'c1' }
         ],
         branches: { main: 'c2' }, HEAD: 'main'
@@ -350,11 +353,12 @@ To scale the API: edit <code>replicas: 5</code> in deployment.yaml, commit, push
         { cmd: 'git commit -m "feat!: redesign API response format"',desc: 'Major version bump (breaking change)' }
       ],
       gitState: {
+        focus: 'Commits auto-bump semver: fix→patch, feat→minor, feat!→major',
         commits: [
           { id: 'c0', msg: 'chore: setup semantic-release', branch: 'main', parent: null, tag: 'v1.0.0' },
-          { id: 'c1', msg: 'fix(api): handle null user session', branch: 'main', parent: 'c0', tag: 'v1.0.1' },
+          { id: 'c1', msg: 'fix(api): null session fix', branch: 'main', parent: 'c0', tag: 'v1.0.1' },
           { id: 'c2', msg: 'feat(auth): add OAuth2 login', branch: 'main', parent: 'c1', tag: 'v1.1.0' },
-          { id: 'c3', msg: 'feat!: redesign API response format', branch: 'main', parent: 'c2', tag: 'v2.0.0' }
+          { id: 'c3', msg: 'feat!: redesign API format', branch: 'main', parent: 'c2', tag: 'v2.0.0' }
         ],
         branches: { main: 'c3' }, HEAD: 'main',
         tags: { 'v1.0.0': 'c0', 'v1.0.1': 'c1', 'v1.1.0': 'c2', 'v2.0.0': 'c3' }
@@ -436,9 +440,10 @@ BREAKING CHANGE: /v1/* routes removed. Migrate to /v2/*.</code>
         { cmd: 'gh copilot suggest "write a commit message for this diff"', desc: 'GitHub Copilot CLI' }
       ],
       gitState: {
+        focus: 'AI wrote both messages — humans review the diff',
         commits: [
-          { id: 'c0', msg: 'fix(auth): prevent session fixation on login redirect', branch: 'main', parent: null },
-          { id: 'c1', msg: 'feat(ui): add skeleton loading to dashboard widgets', branch: 'main', parent: 'c0' }
+          { id: 'c0', msg: 'fix(auth): session fixation fix', branch: 'main', parent: null },
+          { id: 'c1', msg: 'feat(ui): skeleton loading widgets', branch: 'main', parent: 'c0' }
         ],
         branches: { main: 'c1' }, HEAD: 'main'
       },
@@ -527,9 +532,10 @@ BREAKING CHANGE: /v1/* routes removed. Migrate to /v2/*.</code>
         { cmd: '# .github/workflows/ai-review.yml', desc: 'Add AI review to CI pipeline' }
       ],
       gitState: {
+        focus: 'CodeRabbit reviews the PR before any human sees it',
         commits: [
-          { id: 'c0', msg: 'feat(api): add user export endpoint', branch: 'feature/export', parent: null },
-          { id: 'c1', msg: 'test(api): add export endpoint tests', branch: 'feature/export', parent: 'c0' }
+          { id: 'c0', msg: 'feat(api): user export endpoint', branch: 'feature/export', parent: null },
+          { id: 'c1', msg: 'test(api): export endpoint tests', branch: 'feature/export', parent: 'c0' }
         ],
         branches: { main: null, 'feature/export': 'c1' }, HEAD: 'feature/export'
       },
@@ -636,10 +642,11 @@ BREAKING CHANGE: /v1/* routes removed. Migrate to /v2/*.</code>
         { cmd: 'claude "implement the export endpoint with auth"', desc: 'Claude Code CLI agent' }
       ],
       gitState: {
+        focus: 'AI authored feature, tests, and fix — all reviewed by CodeRabbit',
         commits: [
-          { id: 'c0', msg: 'feat(api): add user export endpoint [Claude Code]', branch: 'feature/export', parent: null },
-          { id: 'c1', msg: 'test(api): add export endpoint tests [Claude Code]', branch: 'feature/export', parent: 'c0' },
-          { id: 'c2', msg: 'fix(api): address CodeRabbit auth finding [Claude Code]', branch: 'feature/export', parent: 'c1' }
+          { id: 'c0', msg: 'feat(api): export endpoint [AI]', branch: 'feature/export', parent: null },
+          { id: 'c1', msg: 'test(api): export tests [AI]', branch: 'feature/export', parent: 'c0' },
+          { id: 'c2', msg: 'fix(api): auth finding fix [AI]', branch: 'feature/export', parent: 'c1' }
         ],
         branches: { main: null, 'feature/export': 'c2' }, HEAD: 'feature/export'
       },
@@ -720,9 +727,10 @@ Your value becomes: <em>knowing what to build, spotting what the agent got wrong
         { cmd: 'claude mcp add github-server',        desc: 'Add GitHub MCP to Claude Code' }
       ],
       gitState: {
+        focus: "MCP gives Claude live access to this repo's git history",
         commits: [
           { id: 'c0', msg: 'chore: add .mcp.json config', branch: 'main', parent: null },
-          { id: 'c1', msg: 'feat: Claude answers git questions via MCP', branch: 'main', parent: 'c0' }
+          { id: 'c1', msg: 'feat: Claude reads repo via MCP', branch: 'main', parent: 'c0' }
         ],
         branches: { main: 'c1' }, HEAD: 'main'
       },
@@ -805,11 +813,12 @@ Think of it as a <strong>USB-C standard for AI tools</strong>: instead of every 
         { cmd: 'gh pr merge --merge --auto', desc: 'Queue PR for auto-merge when checks pass' }
       ],
       gitState: {
+        focus: 'Merge queue combines PRs, runs CI together, then merges both',
         commits: [
           { id: 'c0', msg: 'Base: stable main', branch: 'main', parent: null },
-          { id: 'c1', msg: 'PR #1: refactor payment logic', branch: 'feature/pay-refactor', parent: 'c0' },
-          { id: 'c2', msg: 'PR #2: add payment retry logic', branch: 'feature/pay-retry', parent: 'c0' },
-          { id: 'c3', msg: 'Merge queue: PR#1 + PR#2 tested together → merged', branch: 'main', parent: 'c0', merge: 'c2' }
+          { id: 'c1', msg: 'PR #1: refactor payment', branch: 'feature/pay-refactor', parent: 'c0' },
+          { id: 'c2', msg: 'PR #2: payment retry logic', branch: 'feature/pay-retry', parent: 'c0' },
+          { id: 'c3', msg: 'Merge queue: PR#1+PR#2 → merged', branch: 'main', parent: 'c0', merge: 'c2' }
         ],
         branches: { main: 'c3', 'feature/pay-refactor': 'c1', 'feature/pay-retry': 'c2' }, HEAD: 'main'
       },
@@ -890,11 +899,13 @@ GitHub Merge Queue (native), Graphite, and Merge Queue by Aviator implement this
         { cmd: '# renovate.json',          desc: 'Configure Renovate bot' }
       ],
       gitState: {
+        focus: 'Two bots opened parallel dep PRs from the same stable base',
         commits: [
-          { id: 'c0', msg: 'chore(deps): bump express 4.18.2 → 4.19.2 [Dependabot]', branch: 'deps/express', parent: null },
-          { id: 'c1', msg: 'chore(deps): bump @types/node 20.10 → 20.14 [Renovate]', branch: 'deps/types',   parent: null }
+          { id: 'base', msg: 'Stable main branch',              branch: 'main',         parent: null },
+          { id: 'c0',   msg: 'Bump express 4.18→4.19 [Bot]',   branch: 'deps/express', parent: 'base' },
+          { id: 'c1',   msg: 'Bump @types/node 20.10→20.14 [Bot]', branch: 'deps/types', parent: 'base' }
         ],
-        branches: { main: null, 'deps/express': 'c0', 'deps/types': 'c1' }, HEAD: 'main'
+        branches: { main: 'base', 'deps/express': 'c0', 'deps/types': 'c1' }, HEAD: 'main'
       },
       steps: [
         {
@@ -989,10 +1000,11 @@ GitHub's Dependabot security alerts detect CVEs in your dependencies and create 
       tip: 'The best workflows are invisible — developers focus on solving problems, automation handles the rest.',
       commands: [],
       gitState: {
+        focus: 'Commit → AI tests → Renovate updates → ship: all automated',
         commits: [
-          { id: 'c0', msg: 'Workflow: commit triggers full automation pipeline', branch: 'main', parent: null },
-          { id: 'c1', msg: 'feat(pay): Apple Pay support [Claude Code]', branch: 'main', parent: 'c0' },
-          { id: 'c2', msg: 'chore(deps): bump stripe 14→15 [Renovate auto]', branch: 'main', parent: 'c1' }
+          { id: 'c0', msg: 'Workflow: full automation pipeline', branch: 'main', parent: null },
+          { id: 'c1', msg: 'feat(pay): Apple Pay [AI]', branch: 'main', parent: 'c0' },
+          { id: 'c2', msg: 'chore(deps): stripe 14→15 [Bot]', branch: 'main', parent: 'c1' }
         ],
         branches: { main: 'c2' }, HEAD: 'main'
       },
