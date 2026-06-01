@@ -70,8 +70,10 @@ const GitVisualizer = (() => {
     const rows = {};
     commits.forEach((c, i) => { rows[c.id] = i; });
 
-    // Pre-compute children of each commit (sorted by lane, left→right)
-    // Used to fan edges at fork points so no two edges share the same perimeter pixel.
+    // Pre-compute children of each commit, sorted by parent→child angle (ascending).
+    // Angle-sort guarantees siblings always fan outward — sorting by lane BREAKS when a
+    // sibling is straight-down (same lane as parent), because the fan then rotates two
+    // near-parallel edges toward each other rather than apart.
     const childrenOf = {};
     commits.forEach(c => {
       if (c.parent && commitMap[c.parent]) {
@@ -80,9 +82,21 @@ const GitVisualizer = (() => {
       }
     });
     Object.keys(childrenOf).forEach(pid => {
-      childrenOf[pid].sort((a, b) =>
-        (branchLane[commitMap[a]?.branch] || 0) - (branchLane[commitMap[b]?.branch] || 0)
-      );
+      const p   = commitMap[pid];
+      const ppx = LABEL_ZONE + (branchLane[p.branch] || 0) * LANE_W + LANE_W / 2;
+      const ppy = TOP_PAD + rows[p.id] * ROW_H;
+      childrenOf[pid].sort((a, b) => {
+        const ca = commitMap[a], cb = commitMap[b];
+        const angleA = Math.atan2(
+          (TOP_PAD + rows[ca.id] * ROW_H)                                    - ppy,
+          (LABEL_ZONE + (branchLane[ca.branch] || 0) * LANE_W + LANE_W / 2) - ppx
+        );
+        const angleB = Math.atan2(
+          (TOP_PAD + rows[cb.id] * ROW_H)                                    - ppy,
+          (LABEL_ZONE + (branchLane[cb.branch] || 0) * LANE_W + LANE_W / 2) - ppx
+        );
+        return angleA - angleB;
+      });
     });
 
     const numLanes = Math.max(nextLane, 1);
