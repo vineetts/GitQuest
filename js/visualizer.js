@@ -70,6 +70,21 @@ const GitVisualizer = (() => {
     const rows = {};
     commits.forEach((c, i) => { rows[c.id] = i; });
 
+    // Pre-compute children of each commit (sorted by lane, left→right)
+    // Used to fan edges at fork points so no two edges share the same perimeter pixel.
+    const childrenOf = {};
+    commits.forEach(c => {
+      if (c.parent && commitMap[c.parent]) {
+        if (!childrenOf[c.parent]) childrenOf[c.parent] = [];
+        childrenOf[c.parent].push(c.id);
+      }
+    });
+    Object.keys(childrenOf).forEach(pid => {
+      childrenOf[pid].sort((a, b) =>
+        (branchLane[commitMap[a]?.branch] || 0) - (branchLane[commitMap[b]?.branch] || 0)
+      );
+    });
+
     const numLanes = Math.max(nextLane, 1);
     const graphW   = numLanes * LANE_W;
     const maxMsgLen = 30;
@@ -138,7 +153,8 @@ const GitVisualizer = (() => {
         const p   = commitMap[c.parent];
         const px  = originX + branchLane[p.branch] * LANE_W + LANE_W / 2;
         const py  = TOP_PAD + rows[p.id] * ROW_H;
-        drawEdge(edgeG, cx, cy + NODE_R, px, py - NODE_R, color, false, mid, idx, edgeBaseDelay);
+        drawEdge(edgeG, cx, cy, px, py, color, false, mid, idx, edgeBaseDelay,
+          childrenOf[c.parent], c.id);
       }
 
       if (c.merge && commitMap[c.merge]) {
@@ -147,7 +163,7 @@ const GitVisualizer = (() => {
         const my     = TOP_PAD + rows[m.id] * ROW_H;
         const mcol   = laneColors[m.branch] || BRANCH_COLORS[1];
         const mmid   = `gq-arrow-${m.branch.replace(/[^a-z0-9]/gi, '_')}`;
-        drawEdge(edgeG, cx, cy + NODE_R, mx, my - NODE_R, mcol, true, mmid, idx, edgeBaseDelay);
+        drawEdge(edgeG, cx, cy, mx, my, mcol, true, mmid, idx, edgeBaseDelay);
       }
     });
 
@@ -369,19 +385,52 @@ const GitVisualizer = (() => {
   }
 
   // ── edge drawing ──────────────────────────────
-  function drawEdge(parent, x1, y1, x2, y2, color, isDashed, markerId, idx, baseDelay = 0.3) {
-    const sameLane = Math.abs(x1 - x2) < 6;
+  // cx,cy = child centre  px,py = parent centre
+  // siblings = sorted child-ID array for fork-fan (optional)
+  // selfId   = this child's commit ID (optional)
+  function drawEdge(parentEl, cx, cy, px, py, color, isDashed, markerId, idx, baseDelay = 0.3, siblings, selfId) {
+    const dx   = px - cx;
+    const dy   = py - cy;
+    const dist = Math.hypot(dx, dy);
+    if (dist < 1) return;
+    const ux = dx / dist;
+    const uy = dy / dist;
+
+    // Child-perimeter departure point (always simple — one child per child node)
+    const x1 = cx + ux * NODE_R;
+    const y1 = cy + uy * NODE_R;
+
+    // Parent-perimeter arrival point — fanned when multiple siblings share this parent.
+    // Each sibling gets a unique angle on the parent circle → no shared endpoint pixel.
+    let x2, y2;
+    const total  = siblings ? siblings.length : 0;
+    const sibIdx = siblings ? siblings.indexOf(selfId) : -1;
+
+    if (total > 1 && sibIdx >= 0) {
+      // Spread = 20° for 2 children, +8° per extra child, capped at 40°
+      const spreadRad = Math.min(20 + (total - 2) * 8, 40) * Math.PI / 180;
+      const fanOffset = (sibIdx / (total - 1) - 0.5) * 2 * spreadRad;
+      const baseAngle = Math.atan2(dy, dx);    // direction from child toward parent
+      const fanAngle  = baseAngle + fanOffset;  // rotated for this sibling
+      x2 = px - Math.cos(fanAngle) * NODE_R;
+      y2 = py - Math.sin(fanAngle) * NODE_R;
+    } else {
+      x2 = px - ux * NODE_R;
+      y2 = py - uy * NODE_R;
+    }
+
+    const sameLane = Math.abs(cx - px) < 6;
     let d;
     if (sameLane) {
       d = `M ${x1} ${y1} L ${x2} ${y2}`;
     } else {
-      // Nice S-curve for cross-lane merge edges
+      // S-curve: each edge stays in its own lane column then sweeps to the parent.
       const ctl1y = y1 + (y2 - y1) * 0.35;
       const ctl2y = y1 + (y2 - y1) * 0.65;
-      d = `M ${x1} ${y1} C ${x1} ${ctl1y}, ${x2} ${ctl2y}, ${x2} ${y2}`;
+      d = `M ${x1} ${y1} C ${cx} ${ctl1y}, ${px} ${ctl2y}, ${x2} ${y2}`;
     }
 
-    const path = mkSvg('path', parent, {
+    const path = mkSvg('path', parentEl, {
       d,
       stroke: color,
       'stroke-width': '2',
