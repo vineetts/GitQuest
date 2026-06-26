@@ -2,7 +2,7 @@
 
 > **Learn Git by playing.** An interactive, browser-based game that takes you from zero to Git expert through story-driven lessons, real-world incident scenarios, IDE simulations, hands-on CLI practice, and personalised examples based on your background.
 
-[![Live Demo](https://img.shields.io/badge/▶_Play_Now-GitQuest-3fb950?style=for-the-badge)](https://vineetsoppadandi.github.io/GitQuest)
+[![Live Demo](https://img.shields.io/badge/▶_Play_Now-GitQuest-3fb950?style=for-the-badge)](https://vineetts.github.io/GitQuest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 [![No dependencies](https://img.shields.io/badge/dependencies-zero-orange?style=for-the-badge)]()
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=for-the-badge)](CONTRIBUTING.md)
@@ -178,7 +178,7 @@ Each crisis has **3–4 resolution choices**, each with a real-world outcome sto
 
 **Quickest option — just open the live link:**
 
-> 🎮 **[https://vineetsoppadandi.github.io/GitQuest](https://vineetsoppadandi.github.io/GitQuest)**
+> 🎮 **[https://vineetts.github.io/GitQuest](https://vineetts.github.io/GitQuest)**
 
 Or clone and run locally:
 
