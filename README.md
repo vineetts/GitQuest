@@ -364,7 +364,7 @@ window.LIFESTAGE_EXAMPLES.school['beginner_b11_1'] =
 | Structure | HTML5 | Single file, no framework overhead |
 | Style | Vanilla CSS | Custom properties, grid, keyframe animations |
 | Logic | Vanilla JS (IIFE modules) | No dependencies = no supply chain risk |
-| Fonts | Google Fonts (JetBrains Mono + Inter) | CDN, no npm |
+| Fonts | Self-hosted woff2 (JetBrains Mono + Inter) | Bundled latin subset — offline-first, zero external requests |
 | Graphs | Inline SVG | Zero-dependency animated git graphs |
 | Storage | `localStorage` | Zero-config persistence |
 | Deployment | GitHub Pages + Actions | Free, instant, auto-deploys on push |
