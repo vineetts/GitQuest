@@ -115,6 +115,7 @@ const App = (() => {
 
     if (name === 'worldmap') renderWorldMap();
     if (name === 'profile')  renderProfile();
+    if (name === 'persona')  renderPersonaRecommendation();
   }
 
   function goBack() {
@@ -143,6 +144,134 @@ const App = (() => {
     }
     saveState();
     showScreen('worldmap');
+  }
+
+  // ══════════════════════════════════════════════
+  //  PATH RECOMMENDATION QUIZ
+  // ══════════════════════════════════════════════
+  const PATH_QUIZ = [
+    {
+      q: 'How would you describe your experience with Git?',
+      answers: [
+        { text: "I've never used it — what even is a repository?", scores: { beginner: 3 } },
+        { text: "I know git add, commit and push — that's about it", scores: { beginner: 1, intermediate: 2 } },
+        { text: 'I use branches, merges and pull requests regularly', scores: { intermediate: 1, expert: 2 } },
+        { text: 'I mentor others and handle Git incidents in production', scores: { expert: 3, innovator: 1 } }
+      ]
+    },
+    {
+      q: "What's your comfort level with the command line?",
+      answers: [
+        { text: "I've never opened a terminal", scores: { beginner: 3 } },
+        { text: 'I can run basic commands if I follow instructions', scores: { beginner: 1, intermediate: 2 } },
+        { text: "I'm comfortable — I use it daily", scores: { intermediate: 1, expert: 2 } },
+        { text: 'Very comfortable — I script, alias and automate things', scores: { expert: 2, innovator: 2 } }
+      ]
+    },
+    {
+      q: 'Which of these sounds most like you right now?',
+      answers: [
+        { text: "I don't know what version control even solves", scores: { beginner: 3 } },
+        { text: 'I get merge conflicts and my stomach drops', scores: { intermediate: 3 } },
+        { text: 'Production broke — I need to bisect or roll back, fast', scores: { expert: 3 } },
+        { text: 'I want AI agents and GitOps pipelines working together', scores: { innovator: 3 } }
+      ]
+    },
+    {
+      q: "What's your goal right now?",
+      answers: [
+        { text: 'Understand the absolute basics, no pressure', scores: { beginner: 2 } },
+        { text: 'Work smoothly in a team without breaking things', scores: { intermediate: 2 } },
+        { text: 'Handle high-stakes incidents and lead Git practices', scores: { expert: 2 } },
+        { text: 'Adopt the cutting-edge AI + DevOps workflow', scores: { innovator: 2 } }
+      ]
+    }
+  ];
+
+  const PQ_ICON = { beginner: '🌱', intermediate: '🔀', expert: '⚡', innovator: '🚀' };
+  const PQ_RESULT_DESC = {
+    beginner:     "You're starting fresh — Explorer builds the mental model from zero with visual, no-pressure lessons.",
+    intermediate: "You've got the basics down — Adventurer tackles the team workflows that trip people up: conflicts, PRs, rebasing.",
+    expert:       "You're Git-fluent already — Master goes deep on internals, incidents, and the judgment calls senior engineers make.",
+    innovator:    "You're ready for the frontier — Innovator covers the AI-era workflows elite teams are shipping with right now."
+  };
+
+  let pqIndex = 0;
+  let pqScores = {};
+  let pqRecommendation = null;
+
+  function startPathQuiz() {
+    pqIndex = 0;
+    pqScores = { beginner: 0, intermediate: 0, expert: 0, innovator: 0 };
+    showScreen('pathquiz');
+    renderPathQuizQuestion();
+  }
+
+  function renderPathQuizQuestion() {
+    document.getElementById('pq-result').classList.remove('active');
+    document.getElementById('pq-question-area').classList.add('active');
+
+    const total = PATH_QUIZ.length;
+    document.getElementById('pq-dots').innerHTML = PATH_QUIZ.map((_, i) =>
+      `<span class="pq-dot ${i < pqIndex ? 'done' : ''} ${i === pqIndex ? 'active' : ''}"></span>`
+    ).join('');
+
+    const item = PATH_QUIZ[pqIndex];
+    document.getElementById('pq-counter').textContent = `Question ${pqIndex + 1} of ${total}`;
+    document.getElementById('pq-question-text').textContent = item.q;
+    document.getElementById('pq-answers').innerHTML = item.answers.map((a, i) =>
+      `<button class="pq-answer" onclick="App.answerPathQuiz(${i})">${a.text}</button>`
+    ).join('');
+  }
+
+  function answerPathQuiz(i) {
+    const scores = PATH_QUIZ[pqIndex].answers[i].scores;
+    Object.keys(scores).forEach(k => { pqScores[k] = (pqScores[k] || 0) + scores[k]; });
+    pqIndex++;
+    if (pqIndex >= PATH_QUIZ.length) {
+      finishPathQuiz();
+    } else {
+      renderPathQuizQuestion();
+    }
+  }
+
+  function finishPathQuiz() {
+    const order = ['beginner', 'intermediate', 'expert', 'innovator'];
+    let best = order[0];
+    order.forEach(k => { if ((pqScores[k] || 0) > (pqScores[best] || 0)) best = k; });
+    pqRecommendation = best;
+
+    document.getElementById('pq-dots').innerHTML = PATH_QUIZ.map(() => '<span class="pq-dot done"></span>').join('');
+    document.getElementById('pq-question-area').classList.remove('active');
+    document.getElementById('pq-result').classList.add('active');
+
+    const meta = PERSONA_META[best];
+    document.getElementById('pq-result-card').className = 'pq-result-card ' + best;
+    document.getElementById('pq-result-badge').textContent = PQ_ICON[best];
+    document.getElementById('pq-result-tag').textContent = meta.label;
+    document.getElementById('pq-result-title').textContent = `We recommend ${meta.label}`;
+    document.getElementById('pq-result-desc').textContent = PQ_RESULT_DESC[best];
+    document.getElementById('pq-result-cta').textContent = `Start ${meta.label} →`;
+  }
+
+  function acceptPathQuizResult() {
+    if (pqRecommendation) selectPersona(pqRecommendation);
+  }
+
+  function renderPersonaRecommendation() {
+    document.querySelectorAll('.persona-card').forEach(c => {
+      c.classList.remove('pq-recommended');
+      const ribbon = c.querySelector('.pq-ribbon');
+      if (ribbon) ribbon.remove();
+    });
+    if (!pqRecommendation) return;
+    const card = document.querySelector('.persona-card.' + pqRecommendation);
+    if (!card) return;
+    card.classList.add('pq-recommended');
+    const ribbon = document.createElement('div');
+    ribbon.className = 'pq-ribbon';
+    ribbon.textContent = '✨ Recommended for you';
+    card.prepend(ribbon);
   }
 
   // ══════════════════════════════════════════════
@@ -2166,6 +2295,7 @@ const App = (() => {
     promptRestartLesson, confirmRestartLesson,
     promptResetPath, confirmResetPath, promptResetLevel,
     selectLifeStage,
+    startPathQuiz, answerPathQuiz, acceptPathQuizResult,
     selectCrisisChoice, retryCrisis,
     runHotfixStep,
     checkTerminalTask, showTPHint, forceCompleteTask, scrollToBlockingTask

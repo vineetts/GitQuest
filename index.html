@@ -404,6 +404,9 @@
       <button class="btn-back" onclick="App.showScreen('lifestage')">← Back</button>
       <h2>Choose Your Path</h2>
       <p class="screen-subtitle">Select the level that best fits where you are right now</p>
+      <button class="pq-trigger" onclick="App.startPathQuiz()">
+        <span class="pq-trigger-ico">🧭</span> Not sure? Take the 60-second quiz
+      </button>
     </div>
     <div class="persona-grid">
 
@@ -460,6 +463,39 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- ═══════════════ SCREEN: PATH QUIZ ═══════════════ -->
+  <div id="screen-pathquiz" class="screen">
+    <div class="screen-header">
+      <button class="btn-back" onclick="App.showScreen('persona')">← Back</button>
+      <h2>Find Your Path</h2>
+      <p class="screen-subtitle">Four quick questions — we'll recommend where to start</p>
+    </div>
+
+    <div class="pq-wrap">
+      <div class="pq-dots" id="pq-dots"></div>
+
+      <div class="pq-question-area" id="pq-question-area">
+        <div class="pq-counter" id="pq-counter"></div>
+        <h3 class="pq-question-text" id="pq-question-text"></h3>
+        <div class="pq-answers" id="pq-answers"></div>
+      </div>
+
+      <div class="pq-result" id="pq-result">
+        <div class="pq-result-card" id="pq-result-card">
+          <div class="pq-result-badge" id="pq-result-badge"></div>
+          <div class="pq-result-tag persona-tag" id="pq-result-tag"></div>
+          <h3 class="pq-result-title" id="pq-result-title"></h3>
+          <p class="pq-result-desc" id="pq-result-desc"></p>
+          <div class="pq-result-actions">
+            <button class="btn btn-primary btn-lg" id="pq-result-cta" onclick="App.acceptPathQuizResult()"></button>
+            <button class="btn btn-ghost" onclick="App.showScreen('persona')">See all paths</button>
+          </div>
+        </div>
+        <button class="pq-retake" onclick="App.startPathQuiz()">↺ Retake the quiz</button>
+      </div>
     </div>
   </div>
 
