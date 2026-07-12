@@ -3512,3 +3512,234 @@ body {
 
   .lp-footer-links { gap: 14px 18px; }
 }
+
+/* ═══════════════════════════════════════════════
+   LANDING — PREMIUM UI PASS
+   Friendly · hi-tech · premium. Glassmorphism, an
+   animated aurora + tech-grid backdrop, a signature
+   green→teal→blue gradient, and soft micro-interactions.
+   Everything is scoped to #screen-landing so the in-app
+   game screens are completely untouched.
+   ═══════════════════════════════════════════════ */
+#screen-landing {
+  --grad-hero:  linear-gradient(115deg, #8affc1 0%, #3fb950 26%, #22e0c3 58%, #58a6ff 100%);
+  --grad-brand: linear-gradient(120deg, #3fb950, #22e0c3 55%, #58a6ff);
+  --grad-btn:   linear-gradient(135deg, #46cf60 0%, #21d3a6 100%);
+  --glass-bg:        rgba(22, 27, 34, .55);
+  --glass-brd:       rgba(255, 255, 255, .08);
+  --glass-brd-hi:    rgba(255, 255, 255, .16);
+  --ring:            rgba(63, 185, 80, .28);
+  --radius-xl: 20px;
+  background: #0a0e14;
+  isolation: isolate;
+}
+
+/* Aurora mesh — fixed for a subtle parallax depth */
+#screen-landing::before {
+  content: ''; position: fixed; inset: -12%;
+  z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(38% 40% at 12% 8%,  rgba(63,185,80,.22),  transparent 70%),
+    radial-gradient(34% 38% at 88% 12%, rgba(34,224,195,.17), transparent 70%),
+    radial-gradient(46% 46% at 80% 84%, rgba(88,166,255,.16), transparent 72%),
+    radial-gradient(40% 42% at 18% 88%, rgba(188,140,255,.12), transparent 72%);
+  filter: blur(28px) saturate(1.15);
+  animation: lp-aurora 24s ease-in-out infinite alternate;
+}
+@keyframes lp-aurora {
+  0%   { transform: translate3d(0, 0, 0)    scale(1); }
+  50%  { transform: translate3d(0, -2%, 0)  scale(1.06); }
+  100% { transform: translate3d(0, 1.5%, 0) scale(1.02); }
+}
+
+/* Faint tech grid, faded toward the edges */
+#screen-landing::after {
+  content: ''; position: fixed; inset: 0;
+  z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(ellipse 92% 72% at 50% 0%, #000 28%, transparent 82%);
+  -webkit-mask-image: radial-gradient(ellipse 92% 72% at 50% 0%, #000 28%, transparent 82%);
+}
+
+/* ── Nav — deeper glass ── */
+#screen-landing .lp-nav {
+  background: rgba(10, 14, 20, .55);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+  border-bottom: 1px solid var(--glass-brd);
+}
+#screen-landing .lp-brand-glyph {
+  filter: drop-shadow(0 0 12px rgba(34,224,195,.7));
+}
+
+/* ── Gradient type ── */
+#screen-landing .lp-hero-title .accent,
+#screen-landing .lp-section-head h2 .accent,
+#screen-landing .lp-brand-name .accent,
+#screen-landing .lp-cta h2 .accent {
+  background: var(--grad-hero);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+#screen-landing .lp-hero-title { letter-spacing: -2.5px; }
+
+/* ── Glass surfaces ── */
+#screen-landing .lp-stat,
+#screen-landing .lp-card,
+#screen-landing .lp-persona,
+#screen-landing .lp-term,
+#screen-landing .lp-graph {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  backdrop-filter: blur(10px) saturate(1.2);
+  border: 1px solid var(--glass-brd);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 10px 30px -14px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+/* Paths: glass card + a glowing gradient top-rail per level */
+#screen-landing .lp-path {
+  position: relative;
+  overflow: hidden;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  backdrop-filter: blur(10px) saturate(1.2);
+  border: 1px solid var(--glass-brd);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 10px 30px -14px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05);
+}
+#screen-landing .lp-path::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--path-color, var(--green));
+  box-shadow: 0 0 16px var(--path-color, var(--green));
+  opacity: .9;
+}
+#screen-landing .lp-path-beginner  { --path-color: var(--beginner); }
+#screen-landing .lp-path-inter      { --path-color: var(--inter); }
+#screen-landing .lp-path-expert     { --path-color: var(--expert); }
+#screen-landing .lp-path-innovator  { --path-color: var(--innovator); }
+
+/* Glass pills */
+#screen-landing .lp-badge {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-brd);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+#screen-landing .lp-path-count,
+#screen-landing .lp-graph-label {
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--glass-brd);
+}
+
+/* Feature icon tiles — gradient-tinted glass */
+#screen-landing .lp-card-ico {
+  background: linear-gradient(140deg, rgba(63,185,80,.24), rgba(88,166,255,.14));
+  border: 1px solid var(--glass-brd);
+  border-radius: 15px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1);
+}
+
+/* ── Micro-interactions ── */
+#screen-landing .lp-card,
+#screen-landing .lp-stat,
+#screen-landing .lp-persona,
+#screen-landing .lp-path {
+  transition: transform .24s ease, border-color .24s ease, box-shadow .24s ease;
+}
+#screen-landing .lp-card:hover,
+#screen-landing .lp-stat:hover,
+#screen-landing .lp-persona:hover,
+#screen-landing .lp-path:hover {
+  transform: translateY(-5px);
+  border-color: var(--glass-brd-hi);
+  box-shadow: 0 20px 44px -18px rgba(0,0,0,.72),
+              0 0 0 1px var(--ring),
+              inset 0 1px 0 rgba(255,255,255,.07);
+}
+
+/* ── Buttons — gradient CTA with a sheen sweep ── */
+#screen-landing .btn-primary {
+  position: relative;
+  overflow: hidden;
+  background: var(--grad-btn);
+  border: none;
+  color: #03130a;
+  font-weight: 600;
+  box-shadow: 0 8px 22px -8px rgba(33,211,166,.55), inset 0 1px 0 rgba(255,255,255,.38);
+}
+#screen-landing .btn-primary:hover {
+  transform: translateY(-2px);
+  background: var(--grad-btn);
+  box-shadow: 0 12px 30px -8px rgba(33,211,166,.65), inset 0 1px 0 rgba(255,255,255,.42);
+}
+#screen-landing .btn-primary::after {
+  content: ''; position: absolute; top: 0; left: -130%;
+  width: 55%; height: 100%;
+  background: linear-gradient(105deg, transparent, rgba(255,255,255,.4), transparent);
+  transform: skewX(-18deg);
+  transition: left .6s ease;
+}
+#screen-landing .btn-primary:hover::after { left: 140%; }
+
+#screen-landing .btn-secondary {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-brd);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+#screen-landing .btn-secondary:hover {
+  background: rgba(255,255,255,.06);
+  border-color: var(--glass-brd-hi);
+  transform: translateY(-2px);
+}
+#screen-landing .btn-lg { border-radius: 14px; }
+
+/* ── Step numbers — gradient chips ── */
+#screen-landing .lp-step-num {
+  background: var(--grad-btn);
+  color: #03130a;
+  box-shadow: 0 0 24px rgba(33,211,166,.45), inset 0 1px 0 rgba(255,255,255,.4);
+}
+
+/* ── Section rhythm ── */
+#screen-landing .lp-section-alt {
+  background: linear-gradient(180deg, rgba(255,255,255,.022), rgba(255,255,255,0));
+  border-top: 1px solid var(--glass-brd);
+  border-bottom: 1px solid var(--glass-brd);
+}
+
+/* ── Hero visual: gentle float + graph glow ── */
+#screen-landing .lp-node-head {
+  filter: drop-shadow(0 0 8px rgba(34,224,195,.95));
+}
+#screen-landing .lp-term { box-shadow: 0 24px 60px -24px rgba(0,0,0,.8), 0 0 70px -30px rgba(34,224,195,.5); }
+
+/* ── Bigger, multi-hue CTA glow ── */
+#screen-landing .lp-cta-glow {
+  width: 780px; height: 460px;
+  background:
+    radial-gradient(ellipse 50% 50% at 50% 50%, rgba(33,211,166,.26), transparent 70%),
+    radial-gradient(ellipse 62% 60% at 30% 42%, rgba(88,166,255,.16), transparent 72%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  #screen-landing .lp-hero-visual { animation: lp-float 7s ease-in-out infinite; }
+  @keyframes lp-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+}
+@media (prefers-reduced-motion: reduce) {
+  #screen-landing::before { animation: none; }
+  #screen-landing .lp-hero-visual { animation: none; }
+  #screen-landing .btn-primary::after { display: none; }
+}
+
+@media (max-width: 560px) {
+  #screen-landing::after { background-size: 38px 38px; }
+  #screen-landing .lp-hero-title { letter-spacing: -1.2px; }
+}
