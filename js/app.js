@@ -10,7 +10,7 @@ const App = (() => {
   let currentLevelData = null;
   let currentStepIndex = 0;
   let currentStepCount = 0;
-  let screenHistory = ['welcome'];
+  let screenHistory = ['landing'];
   let quizAnswered = {};
   let quizAttempts = {};      // { stepIdx: { qi: attemptCount } }
   let quizSkipped  = {};      // { stepIdx: true } — quiz steps skipped via Next
@@ -94,7 +94,7 @@ const App = (() => {
 
   // ── Init ──────────────────────────────────────
   function init() {
-    showScreen('welcome');
+    showScreen('landing');
     // Restore last active persona if any
     if (state.lastPersona) {
       currentPersona = state.lastPersona;
@@ -119,7 +119,7 @@ const App = (() => {
 
   function goBack() {
     screenHistory.pop();
-    const prev = screenHistory[screenHistory.length - 1] || 'welcome';
+    const prev = screenHistory[screenHistory.length - 1] || 'landing';
     showScreen(prev);
   }
 
@@ -2144,7 +2144,7 @@ const App = (() => {
     localStorage.removeItem('gitquest_state');
     state = loadState();
     closeModal('modal-reset');
-    showScreen('welcome');
+    showScreen('landing');
   }
 
   // Public API
