@@ -2920,7 +2920,9 @@ body {
 #screen-landing {
   position: relative;
   background: radial-gradient(ellipse 80% 50% at 50% 0%, #0a1f1a 0%, var(--bg) 60%);
-  overflow-x: hidden;
+  /* clip (not hidden) avoids creating a scroll container, which would
+     force overflow-y:auto and break position:sticky on the reveal stage */
+  overflow-x: clip;
   scroll-padding-top: 72px;
 }
 
@@ -3742,4 +3744,229 @@ body {
 @media (max-width: 560px) {
   #screen-landing::after { background-size: 38px 38px; }
   #screen-landing .lp-hero-title { letter-spacing: -1.2px; }
+}
+
+/* ═══════════════════════════════════════════════
+   SCROLL REVEAL — the repo builds itself (Apple-style)
+   A tall section with a sticky, pinned stage. Scroll
+   progress is driven by js/scrollstage.js.
+   ═══════════════════════════════════════════════ */
+.lp-reveal { position: relative; height: 380vh; }
+
+.lp-rv-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Reduced-motion / static fallback: show the finished repo, no pin */
+.lp-rv-static { height: auto; }
+.lp-rv-static .lp-rv-stage { position: relative; height: 100vh; }
+
+.lp-rv-glow {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 940px; height: 640px;
+  transform: translate(-50%, -50%);
+  background:
+    radial-gradient(ellipse 44% 50% at 50% 46%, rgba(33,211,166,.24), transparent 70%),
+    radial-gradient(ellipse 50% 50% at 66% 60%, rgba(88,166,255,.16), transparent 72%),
+    radial-gradient(ellipse 40% 44% at 34% 40%, rgba(63,185,80,.18), transparent 72%);
+  filter: blur(26px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: .2;
+}
+
+/* Captions crossfade near the top */
+.lp-rv-caps {
+  position: absolute;
+  top: 9vh; left: 50%;
+  transform: translateX(-50%);
+  width: min(880px, 92vw);
+  text-align: center;
+  z-index: 3;
+  pointer-events: none;
+}
+.lp-rv-cap { position: absolute; left: 0; right: 0; top: 0; opacity: 0; }
+.lp-rv-kicker {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: #22e0c3;
+  margin-bottom: 12px;
+}
+.lp-rv-cap h2 {
+  font-size: clamp(1.6rem, 4vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -1.2px;
+  line-height: 1.1;
+}
+
+/* The "product": a git graph that draws itself */
+.lp-rv-graph-wrap {
+  position: relative;
+  z-index: 2;
+  width: min(840px, 92vw);
+  margin: 0 auto;
+}
+.lp-rv-graph { width: 100%; height: auto; display: block; overflow: visible; }
+
+.lp-rv-edge {
+  stroke: var(--green);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  filter: drop-shadow(0 0 6px rgba(63,185,80,.5));
+}
+.lp-rv-edge.lp-b   { stroke: var(--blue); filter: drop-shadow(0 0 6px rgba(88,166,255,.5)); }
+.lp-rv-edge.lp-mrg { stroke: #22e0c3;     filter: drop-shadow(0 0 7px rgba(34,224,195,.6)); }
+
+.lp-rv-node {
+  fill: var(--green);
+  stroke: #0a0e14;
+  stroke-width: 4;
+  opacity: 0;
+  transform: scale(.4);
+  transform-box: fill-box;
+  transform-origin: center;
+  filter: drop-shadow(0 0 8px rgba(63,185,80,.6));
+}
+.lp-rv-node.lp-b    { fill: var(--blue);  filter: drop-shadow(0 0 8px rgba(88,166,255,.6)); }
+.lp-rv-node.lp-mrg  { fill: #22e0c3;      filter: drop-shadow(0 0 10px rgba(34,224,195,.7)); }
+.lp-rv-node.lp-head { fill: #22e0c3;      filter: drop-shadow(0 0 16px rgba(34,224,195,.95)); }
+
+.lp-rv-glabel {
+  fill: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  opacity: 0;
+}
+
+.lp-rv-brand {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: -8px;
+  text-align: center;
+  font-size: clamp(1.4rem, 3vw, 2.1rem);
+  font-weight: 800;
+  letter-spacing: -1px;
+  opacity: 0;
+}
+.lp-rv-brand .accent {
+  background: var(--grad-hero);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+
+/* Live terminal, docked bottom */
+.lp-rv-term {
+  position: absolute;
+  bottom: 8vh; left: 50%;
+  transform: translateX(-50%);
+  width: min(520px, 92vw);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  backdrop-filter: blur(12px) saturate(1.2);
+  border: 1px solid var(--glass-brd);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  z-index: 3;
+  box-shadow: 0 24px 60px -24px rgba(0,0,0,.85);
+}
+.lp-rv-term-bar {
+  display: flex; align-items: center; gap: 7px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,.03);
+  border-bottom: 1px solid var(--glass-brd);
+}
+.lp-rv-term-body {
+  padding: 14px 16px;
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  line-height: 1.85;
+}
+.lp-rv-term-body p { opacity: 0; white-space: nowrap; }
+
+/* HUD assembles at the end */
+.lp-rv-hud {
+  position: absolute;
+  top: 11vh;
+  right: max(24px, 6vw);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+.lp-rv-xp {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 1.35rem;
+  color: #03130a;
+  background: var(--grad-btn);
+  padding: 6px 16px;
+  border-radius: 100px;
+  opacity: 0;
+  box-shadow: 0 0 26px rgba(33,211,166,.5), inset 0 1px 0 rgba(255,255,255,.4);
+}
+.lp-rv-ach {
+  font-size: .82rem;
+  font-weight: 600;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-brd);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  padding: 7px 14px;
+  border-radius: 100px;
+  opacity: 0;
+}
+
+/* Scroll progress rail, docked bottom-center */
+.lp-rv-progress {
+  position: absolute;
+  bottom: 26px; left: 50%;
+  transform: translateX(-50%);
+  width: min(220px, 50vw);
+  height: 3px;
+  background: rgba(255,255,255,.1);
+  border-radius: 3px;
+  overflow: hidden;
+  z-index: 4;
+}
+.lp-rv-progress span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--grad-btn);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+@media (max-width: 860px) {
+  .lp-reveal { height: 360vh; }
+  .lp-rv-term { width: min(460px, 92vw); }
+  .lp-rv-hud { top: 9vh; }
+}
+@media (max-width: 560px) {
+  .lp-reveal { height: 340vh; }
+  .lp-rv-caps { top: 7vh; }
+  .lp-rv-cap h2 { font-size: clamp(1.4rem, 6vw, 2rem); }
+  .lp-rv-graph-wrap { width: 94vw; }
+  .lp-rv-term { bottom: 6vh; font-size: .74rem; }
+  .lp-rv-term-body { font-size: .72rem; }
+  .lp-rv-hud { top: auto; bottom: 14vh; right: 50%; transform: translateX(50%); align-items: center; }
+  .lp-rv-xp { font-size: 1.15rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-reveal { height: auto; }
+  .lp-rv-stage { position: relative; height: 100vh; }
 }

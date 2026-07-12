@@ -144,6 +144,70 @@
       </div>
     </section>
 
+    <!-- ── Scroll reveal: a repo builds itself ── -->
+    <section class="lp-reveal" id="lp-reveal" aria-label="Watch a Git repository come to life as you scroll">
+      <div class="lp-rv-stage">
+        <div class="lp-rv-glow" aria-hidden="true"></div>
+
+        <!-- Captions crossfade as you scroll -->
+        <div class="lp-rv-caps">
+          <div class="lp-rv-cap" data-a="0"    data-b="0.16"><span class="lp-rv-kicker">The product, unveiled</span><h2>It starts with a single commit.</h2></div>
+          <div class="lp-rv-cap" data-a="0.16" data-b="0.38"><span class="lp-rv-kicker">Branch freely</span><h2>Split off. Break nothing.</h2></div>
+          <div class="lp-rv-cap" data-a="0.38" data-b="0.58"><span class="lp-rv-kicker">In parallel</span><h2>Build without stepping on anyone.</h2></div>
+          <div class="lp-rv-cap" data-a="0.58" data-b="0.78"><span class="lp-rv-kicker">Bring it home</span><h2>Merge it back — cleanly.</h2></div>
+          <div class="lp-rv-cap" data-a="0.78" data-b="1.01"><span class="lp-rv-kicker">And that's the loop</span><h2>Ship it. Level up.</h2></div>
+        </div>
+
+        <!-- The "product": a git graph that draws itself -->
+        <div class="lp-rv-graph-wrap" aria-hidden="true">
+          <svg class="lp-rv-graph" viewBox="0 0 900 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- edges (normalized draw-on via pathLength) -->
+            <path class="lp-rv-edge"        pathLength="1" data-in="0.05" data-dur="0.08" d="M90,210 L250,210"/>
+            <path class="lp-rv-edge lp-b"   pathLength="1" data-in="0.16" data-dur="0.10" d="M250,210 C300,210 300,100 330,100"/>
+            <path class="lp-rv-edge"        pathLength="1" data-in="0.22" data-dur="0.08" d="M250,210 L410,210"/>
+            <path class="lp-rv-edge lp-b"   pathLength="1" data-in="0.40" data-dur="0.08" d="M330,100 L500,100"/>
+            <path class="lp-rv-edge"        pathLength="1" data-in="0.56" data-dur="0.09" d="M410,210 L620,210"/>
+            <path class="lp-rv-edge lp-mrg" pathLength="1" data-in="0.60" data-dur="0.10" d="M500,100 C560,100 560,210 620,210"/>
+            <path class="lp-rv-edge"        pathLength="1" data-in="0.80" data-dur="0.08" d="M620,210 L790,210"/>
+            <!-- branch labels -->
+            <text class="lp-rv-glabel lp-rv-line" data-in="0.24" x="500" y="80"  text-anchor="middle">feature</text>
+            <text class="lp-rv-glabel lp-rv-line" data-in="0.82" x="790" y="248" text-anchor="middle">main · HEAD</text>
+            <!-- nodes -->
+            <circle class="lp-rv-node"      data-in="0.06" cx="90"  cy="210" r="13"/>
+            <circle class="lp-rv-node"      data-in="0.15" cx="250" cy="210" r="13"/>
+            <circle class="lp-rv-node lp-b" data-in="0.24" cx="330" cy="100" r="13"/>
+            <circle class="lp-rv-node"      data-in="0.28" cx="410" cy="210" r="13"/>
+            <circle class="lp-rv-node lp-b" data-in="0.44" cx="500" cy="100" r="13"/>
+            <circle class="lp-rv-node lp-mrg" data-in="0.62" cx="620" cy="210" r="14"/>
+            <circle class="lp-rv-node lp-head" data-in="0.82" cx="790" cy="210" r="15"/>
+          </svg>
+          <div class="lp-rv-brand lp-rv-line" data-in="0.86">This is <span class="accent">GitQuest</span>.</div>
+        </div>
+
+        <!-- Live terminal that types along -->
+        <div class="lp-rv-term" aria-hidden="true">
+          <div class="lp-rv-term-bar"><span class="lp-dot lp-dot-r"></span><span class="lp-dot lp-dot-y"></span><span class="lp-dot lp-dot-g"></span></div>
+          <div class="lp-rv-term-body">
+            <p class="lp-rv-line" data-in="0.04"><span class="lp-tp">$</span> git init</p>
+            <p class="lp-rv-line lp-tmuted" data-in="0.09">Initialized empty Git repository</p>
+            <p class="lp-rv-line" data-in="0.22"><span class="lp-tp">$</span> git checkout -b feature</p>
+            <p class="lp-rv-line" data-in="0.42"><span class="lp-tp">$</span> git commit -m "build the UI"</p>
+            <p class="lp-rv-line" data-in="0.60"><span class="lp-tp">$</span> git merge feature</p>
+            <p class="lp-rv-line lp-tgreen" data-in="0.80">✔ Fast-forwarded. Working tree clean.</p>
+          </div>
+        </div>
+
+        <!-- HUD assembles at the end -->
+        <div class="lp-rv-hud">
+          <div class="lp-rv-xp lp-rv-line" data-in="0.80"><span class="lp-rv-xp-num">0</span> XP</div>
+          <div class="lp-rv-ach lp-rv-line" data-in="0.88">🏆 Merge Master unlocked</div>
+        </div>
+
+        <!-- Scroll progress rail -->
+        <div class="lp-rv-progress" aria-hidden="true"><span></span></div>
+      </div>
+    </section>
+
     <!-- ── Gamification stats ── -->
     <section class="lp-stats">
       <div class="lp-stat"><span class="lp-stat-ico">✨</span><b>XP &amp; Levels</b><small>Every task rewards progress — watch yourself level up</small></div>
@@ -651,5 +715,6 @@
 <script src="js/visualizer.js"></script>
 <script src="js/terminal.js"></script>
 <script src="js/app.js"></script>
+<script src="js/scrollstage.js"></script>
 </body>
 </html>
