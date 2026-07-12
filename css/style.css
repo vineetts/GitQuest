@@ -370,6 +370,169 @@ body {
 }
 .persona-stats span { color: var(--text-dim); font-size: .78rem; }
 
+/* ── Quiz trigger (persona screen) + recommendation ribbon ── */
+.pq-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 8px 18px;
+  color: var(--text-muted);
+  font-family: var(--font-main);
+  font-size: .85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.pq-trigger:hover {
+  border-color: var(--green);
+  color: var(--text);
+  box-shadow: 0 4px 16px rgba(63,185,80,.15);
+}
+.pq-trigger-ico { font-size: 1rem; }
+
+.persona-card.pq-recommended {
+  border-color: var(--green);
+  box-shadow: 0 0 0 1px rgba(63,185,80,.5), 0 8px 24px -8px rgba(63,185,80,.35);
+}
+.pq-ribbon {
+  background: var(--green);
+  color: #04170a;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 100px;
+  box-shadow: 0 4px 14px rgba(63,185,80,.45);
+}
+
+/* ═══════════════════════════════════════════════
+   PATH RECOMMENDATION QUIZ
+   ═══════════════════════════════════════════════ */
+.pq-wrap {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 8px 24px 60px;
+  width: 100%;
+}
+
+.pq-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+.pq-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  transition: all var(--transition);
+}
+.pq-dot.active {
+  background: var(--green);
+  border-color: var(--green);
+  box-shadow: 0 0 10px rgba(63,185,80,.6);
+  width: 22px;
+  border-radius: 4px;
+}
+.pq-dot.done { background: var(--green); border-color: var(--green); }
+
+.pq-question-area, .pq-result { display: none; }
+.pq-question-area.active, .pq-result.active { display: block; animation: fadeIn .3s ease; }
+
+.pq-counter {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+.pq-question-text {
+  text-align: center;
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 28px;
+  line-height: 1.4;
+}
+.pq-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pq-answer {
+  text-align: left;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  color: var(--text);
+  font-family: var(--font-main);
+  font-size: .95rem;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.pq-answer:hover {
+  border-color: var(--green);
+  background: var(--bg3);
+  transform: translateX(4px);
+}
+
+.pq-result-card {
+  text-align: center;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--green);
+  border-radius: var(--radius-lg);
+  padding: 40px 32px;
+  box-shadow: 0 8px 30px -12px rgba(0,0,0,.5);
+}
+.pq-result-card.beginner     { border-top-color: var(--beginner); }
+.pq-result-card.intermediate { border-top-color: var(--inter); }
+.pq-result-card.expert       { border-top-color: var(--expert); }
+.pq-result-card.innovator    { border-top-color: var(--innovator); }
+
+.pq-result-badge { font-size: 3rem; margin-bottom: 12px; }
+.pq-result-card.beginner     .pq-result-badge { filter: drop-shadow(0 0 20px var(--beginner)); }
+.pq-result-card.intermediate .pq-result-badge { filter: drop-shadow(0 0 20px var(--inter)); }
+.pq-result-card.expert       .pq-result-badge { filter: drop-shadow(0 0 20px var(--expert)); }
+.pq-result-card.innovator    .pq-result-badge { filter: drop-shadow(0 0 20px var(--innovator)); }
+
+.pq-result-card .pq-result-tag { margin-bottom: 16px; font-size: .78rem; padding: 4px 14px; }
+.pq-result-title { font-size: 1.6rem; font-weight: 800; margin-bottom: 12px; letter-spacing: -.5px; }
+.pq-result-desc {
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.65;
+  max-width: 440px;
+  margin: 0 auto 28px;
+}
+.pq-result-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+
+.pq-retake {
+  display: block;
+  margin: 20px auto 0;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: .85rem;
+  cursor: pointer;
+  transition: color var(--transition);
+}
+.pq-retake:hover { color: var(--text-muted); }
+
+@media (max-width: 560px) {
+  .pq-wrap { padding: 8px 16px 48px; }
+  .pq-question-text { font-size: 1.15rem; }
+  .pq-result-card { padding: 32px 22px; }
+  .pq-result-actions { flex-direction: column; align-items: stretch; }
+}
+
 /* ═══════════════════════════════════════════════
    WORLD MAP
    ═══════════════════════════════════════════════ */
