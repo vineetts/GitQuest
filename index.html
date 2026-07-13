@@ -143,6 +143,61 @@
       </div>
     </section>
 
+    <!-- ── Showcase: one cinematic scroll moment, the product's signature beat ── -->
+    <section class="lp-showcase" id="lp-showcase" aria-label="Watch a Git repository come to life as you scroll">
+      <div class="lp-showcase-stage">
+        <div class="lp-sc-glow" aria-hidden="true"></div>
+
+        <div class="lp-sc-caps">
+          <div class="lp-sc-cap" data-a="0"    data-b="0.24"><span class="lp-sc-kicker">The product, unveiled</span><h2>It starts with a single commit.</h2></div>
+          <div class="lp-sc-cap" data-a="0.24" data-b="0.5"><span class="lp-sc-kicker">Branch freely</span><h2>Split off. Build in parallel. Break nothing.</h2></div>
+          <div class="lp-sc-cap" data-a="0.5"  data-b="0.76"><span class="lp-sc-kicker">Bring it home</span><h2>Merge it back — cleanly.</h2></div>
+          <div class="lp-sc-cap" data-a="0.76" data-b="1.01"><span class="lp-sc-kicker">And that's the loop</span><h2>Ship it. Level up.</h2></div>
+        </div>
+
+        <div class="lp-sc-graph-wrap" aria-hidden="true">
+          <svg class="lp-sc-graph" viewBox="0 0 900 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path class="lp-sc-edge"        pathLength="1" data-in="0.05" data-dur="0.09" d="M90,210 L250,210"/>
+            <path class="lp-sc-edge lp-b"   pathLength="1" data-in="0.20" data-dur="0.12" d="M250,210 C300,210 300,100 330,100"/>
+            <path class="lp-sc-edge"        pathLength="1" data-in="0.28" data-dur="0.09" d="M250,210 L410,210"/>
+            <path class="lp-sc-edge lp-b"   pathLength="1" data-in="0.48" data-dur="0.09" d="M330,100 L500,100"/>
+            <path class="lp-sc-edge"        pathLength="1" data-in="0.66" data-dur="0.10" d="M410,210 L620,210"/>
+            <path class="lp-sc-edge lp-mrg" pathLength="1" data-in="0.70" data-dur="0.12" d="M500,100 C560,100 560,210 620,210"/>
+            <path class="lp-sc-edge"        pathLength="1" data-in="0.92" data-dur="0.08" d="M620,210 L790,210"/>
+            <text class="lp-sc-glabel lp-sc-line" data-in="0.30" x="500" y="80"  text-anchor="middle">feature</text>
+            <text class="lp-sc-glabel lp-sc-line" data-in="0.94" x="790" y="248" text-anchor="middle">main · HEAD</text>
+            <circle class="lp-sc-node"      data-in="0.06" cx="90"  cy="210" r="13"/>
+            <circle class="lp-sc-node"      data-in="0.18" cx="250" cy="210" r="13"/>
+            <circle class="lp-sc-node lp-b" data-in="0.30" cx="330" cy="100" r="13"/>
+            <circle class="lp-sc-node"      data-in="0.34" cx="410" cy="210" r="13"/>
+            <circle class="lp-sc-node lp-b" data-in="0.52" cx="500" cy="100" r="13"/>
+            <circle class="lp-sc-node lp-mrg" data-in="0.72" cx="620" cy="210" r="14"/>
+            <circle class="lp-sc-node lp-head" data-in="0.94" cx="790" cy="210" r="15"/>
+          </svg>
+          <div class="lp-sc-brand lp-sc-line" data-in="0.97">This is <span class="accent">Git Energy</span>.</div>
+        </div>
+
+        <div class="lp-sc-term" aria-hidden="true">
+          <div class="lp-sc-term-bar"><span class="lp-dot lp-dot-r"></span><span class="lp-dot lp-dot-y"></span><span class="lp-dot lp-dot-g"></span></div>
+          <div class="lp-sc-term-body">
+            <p class="lp-sc-line" data-in="0.04"><span class="lp-tp">$</span> git init</p>
+            <p class="lp-sc-line lp-tmuted" data-in="0.10">Initialized empty Git repository</p>
+            <p class="lp-sc-line" data-in="0.26"><span class="lp-tp">$</span> git checkout -b feature</p>
+            <p class="lp-sc-line" data-in="0.50"><span class="lp-tp">$</span> git commit -m "build the UI"</p>
+            <p class="lp-sc-line" data-in="0.70"><span class="lp-tp">$</span> git merge feature</p>
+            <p class="lp-sc-line lp-tgreen" data-in="0.90">✔ Fast-forwarded. Working tree clean.</p>
+          </div>
+        </div>
+
+        <div class="lp-sc-hud">
+          <div class="lp-sc-xp lp-sc-line" data-in="0.90"><span class="lp-sc-xp-num">0</span> XP</div>
+          <div class="lp-sc-ach lp-sc-line" data-in="0.96">🏆 Merge Master unlocked</div>
+        </div>
+
+        <div class="lp-sc-progress" aria-hidden="true"><span></span></div>
+      </div>
+    </section>
+
     <!-- ── Gamification stats ── -->
     <section class="lp-stats">
       <div class="lp-stat reveal"><span class="lp-stat-ico">✨</span><b>XP &amp; Levels</b><small>Every task rewards progress — watch yourself level up</small></div>
@@ -157,40 +212,70 @@
         <h2>Learn by <span class="accent">doing</span>, not watching</h2>
         <p>No passive videos. You type real commands, resolve real conflicts, and survive real incidents.</p>
       </div>
-      <div class="lp-feature-grid">
-        <div class="lp-card reveal">
-          <div class="lp-card-ico">💻</div>
-          <h3>Simulated Terminal</h3>
-          <p>A full git + shell simulator — 30+ commands, history, tab-complete. Tasks tick off live as you type.</p>
+      <div class="lp-feature-rows">
+
+        <div class="lp-frow lp-frow-beginner">
+          <div class="lp-frow-copy reveal">
+            <span class="lp-frow-kicker">Practice</span>
+            <h3>A real terminal. Not a fake one.</h3>
+            <p>A full git + shell simulator — 30+ commands, command history, tab-complete. Tasks tick off live as you type, so muscle memory actually forms.</p>
+          </div>
+          <div class="lp-frow-visual tilt reveal">
+            <div class="lp-frow-bar"><span class="lp-dot lp-dot-r"></span><span class="lp-dot lp-dot-y"></span><span class="lp-dot lp-dot-g"></span><span class="lp-frow-title">bash — gitenergy</span></div>
+            <div class="lp-frow-body mono">
+              <p><span class="lp-tp">$</span> git rebase -i HEAD~3</p>
+              <p class="lp-tmuted">3 commits queued for interactive rebase</p>
+              <p><span class="lp-tp">$</span> <span class="lp-caret">▋</span></p>
+            </div>
+          </div>
         </div>
-        <div class="lp-card reveal">
-          <div class="lp-card-ico">🌲</div>
-          <h3>Live Git Graph</h3>
-          <p>Watch branches, merges and rebases animate in real time so the mental model actually clicks.</p>
+
+        <div class="lp-frow lp-frow-inter">
+          <div class="lp-frow-copy reveal">
+            <span class="lp-frow-kicker">Ship like a team</span>
+            <h3>IDE panels, PRs, and AI review.</h3>
+            <p>VS Code's Source Control panel, GitHub PR interfaces, AI review panels and agent workflows — the exact tools you'll use on a real team.</p>
+          </div>
+          <div class="lp-frow-visual tilt reveal">
+            <div class="lp-frow-bar"><span class="lp-frow-title">Source Control</span></div>
+            <div class="lp-frow-body">
+              <p><span class="lp-frow-tag m">M</span><span class="lp-frow-file">app.js</span></p>
+              <p><span class="lp-frow-tag a">A</span><span class="lp-frow-file">login.css</span></p>
+              <p><span class="lp-frow-tag u">U</span><span class="lp-frow-file">README.md</span></p>
+            </div>
+          </div>
         </div>
-        <div class="lp-card reveal">
-          <div class="lp-card-ico">🚨</div>
-          <h3>Crisis Scenarios</h3>
-          <p>A secret leaks. A rebase eats a colleague's commits. You choose — and live the consequences.</p>
-          <div class="lp-card-mock lp-mock-choices" aria-hidden="true"><span>git reset --soft</span><span>Rotate the key</span></div>
+
+        <div class="lp-frow lp-frow-expert">
+          <div class="lp-frow-copy reveal">
+            <span class="lp-frow-kicker">When it breaks</span>
+            <h3>Live incidents. You decide what happens.</h3>
+            <p>A secret leaks to main. A rebase eats a colleague's commits. Real crisis scenarios with real consequences — you choose, and you live with it.</p>
+          </div>
+          <div class="lp-frow-visual tilt reveal">
+            <div class="lp-frow-bar"><span class="lp-frow-title">🚨 Incident</span></div>
+            <div class="lp-frow-body">
+              <p>Secret key committed to main. Scanner fires in 45s.</p>
+              <div class="lp-frow-choices"><span>git reset --soft</span><span>Rotate the key</span></div>
+            </div>
+          </div>
         </div>
-        <div class="lp-card reveal">
-          <div class="lp-card-ico">🖥️</div>
-          <h3>IDE Simulations</h3>
-          <p>VS Code SCM, GitHub PRs, AI review panels and agent workflows — the tools you'll use for real.</p>
-          <div class="lp-card-mock lp-mock-tags" aria-hidden="true"><span class="lp-mock-tag m">M</span><span class="lp-mock-file">app.js</span><span class="lp-mock-tag a">A</span><span class="lp-mock-file">login.css</span></div>
+
+        <div class="lp-frow lp-frow-innovator">
+          <div class="lp-frow-copy reveal">
+            <span class="lp-frow-kicker">Stay sharp</span>
+            <h3>Quizzes with real stakes.</h3>
+            <p>Three attempts, progressive hints, and the correct answer revealed with a full explanation after a miss — no gotchas, no passive video required.</p>
+          </div>
+          <div class="lp-frow-visual tilt reveal">
+            <div class="lp-frow-bar"><span class="lp-frow-title">Quiz — attempt 1 of 3</span></div>
+            <div class="lp-frow-body">
+              <p>Which command stages a file?</p>
+              <div class="lp-frow-dots"><span class="on"></span><span></span><span></span></div>
+            </div>
+          </div>
         </div>
-        <div class="lp-card reveal">
-          <div class="lp-card-ico">🌍</div>
-          <h3>Personalised Examples</h3>
-          <p>Pick your background and every lesson reframes itself through your world — school, uni, or work.</p>
-        </div>
-        <div class="lp-card reveal">
-          <div class="lp-card-ico">🎯</div>
-          <h3>Honest Quizzes</h3>
-          <p>Three attempts, progressive hints, and the answer revealed with a full explanation — no gotchas.</p>
-          <div class="lp-card-mock lp-mock-dots" aria-hidden="true"><span class="on"></span><span></span><span></span></div>
-        </div>
+
       </div>
     </section>
 
@@ -201,25 +286,25 @@
         <p>Start wherever you are. Each path builds on the last.</p>
       </div>
       <div class="lp-path-grid">
-        <div class="lp-path lp-path-beginner reveal">
+        <div class="lp-path lp-path-beginner tilt reveal">
           <div class="lp-path-top"><span class="lp-path-ico">🌱</span><span class="lp-path-count">12 lessons</span></div>
           <h3>Explorer</h3>
           <p class="lp-path-tag">"I've never used Git before"</p>
           <p>First repo, commits, branches, merging, remotes and your first PR.</p>
         </div>
-        <div class="lp-path lp-path-inter reveal">
+        <div class="lp-path lp-path-inter tilt reveal">
           <div class="lp-path-top"><span class="lp-path-ico">🔀</span><span class="lp-path-count">10 lessons</span></div>
           <h3>Adventurer</h3>
           <p class="lp-path-tag">"I know the basics, teams confuse me"</p>
           <p>Conflicts, rebase vs merge, stashing, cherry-pick, tags and PR reviews.</p>
         </div>
-        <div class="lp-path lp-path-expert reveal">
+        <div class="lp-path lp-path-expert tilt reveal">
           <div class="lp-path-top"><span class="lp-path-ico">⚡</span><span class="lp-path-count">8 lessons</span></div>
           <h3>Master</h3>
           <p class="lp-path-tag">"I use Git daily, level me up"</p>
           <p>Internals, interactive rebase, bisect, hooks, reflog rescues and governance.</p>
         </div>
-        <div class="lp-path lp-path-innovator reveal">
+        <div class="lp-path lp-path-innovator tilt reveal">
           <div class="lp-path-top"><span class="lp-path-ico">🚀</span><span class="lp-path-count">11 lessons</span></div>
           <h3>Innovator</h3>
           <p class="lp-path-tag">"I want to ship like elite teams"</p>
@@ -690,5 +775,7 @@
 <script src="js/terminal.js"></script>
 <script src="js/app.js"></script>
 <script src="js/reveal.js"></script>
+<script src="js/showcase.js"></script>
+<script src="js/tilt.js"></script>
 </body>
 </html>
