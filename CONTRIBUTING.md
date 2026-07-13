@@ -1,6 +1,6 @@
-# Contributing to GitQuest
+# Contributing to Git Energy
 
-Thank you for wanting to improve GitQuest! This document explains how to add lessons, fix bugs, and get your changes merged.
+Thank you for wanting to improve Git Energy! This document explains how to add lessons, fix bugs, and get your changes merged.
 
 ---
 
@@ -20,8 +20,8 @@ Thank you for wanting to improve GitQuest! This document explains how to add les
 
 ```bash
 # 1. Fork the repo on GitHub, then:
-git clone https://github.com/YOUR-USERNAME/GitQuest.git
-cd GitQuest
+git clone https://github.com/YOUR-USERNAME/GitEnergy.git
+cd GitEnergy
 
 # 2. Create a branch for your contribution
 git switch -c lesson/add-git-aliases
@@ -434,4 +434,4 @@ Before submitting:
 
 ## Questions?
 
-Open a [GitHub Discussion](https://github.com/your-username/GitQuest/discussions) or file an [issue](https://github.com/your-username/GitQuest/issues).
+Open a [GitHub Discussion](https://github.com/your-username/GitEnergy/discussions) or file an [issue](https://github.com/your-username/GitEnergy/issues).

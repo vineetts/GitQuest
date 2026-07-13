@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://vineetts.github.io/GitQuest/sitemap.xml
+Sitemap: https://vineetts.github.io/GitEnergy/sitemap.xml

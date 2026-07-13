@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════
-//  GitQuest — Innovator Path
+//  Git Energy — Innovator Path
 //  Real-world strategies + Agentic AI in Git
 //  Extends GAME_DATA and ACHIEVEMENTS from data.js
 // ═══════════════════════════════════════════════

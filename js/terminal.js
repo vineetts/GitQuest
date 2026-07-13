@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════
-//  GitQuest — Simulated Git Terminal
+//  Git Energy — Simulated Git Terminal
 // ═══════════════════════════════════════════════
 
 const Terminal = (() => {
@@ -42,7 +42,7 @@ const Terminal = (() => {
     const output = document.getElementById('terminal-output');
     if (output) {
       output.innerHTML = '';
-      print('info', `GitQuest Terminal — type 'help' for commands`);
+      print('info', `Git Energy Terminal — type 'help' for commands`);
       print('info', `Lesson: ${lessonData?.title || 'Free practice'}`);
       if (repoInitialized && commits.length > 0) {
         print('info', `Repository already set up — ${commits.length} commits on ${currentBranch}`);
@@ -979,7 +979,7 @@ const Terminal = (() => {
   }
 
   function showHelp() {
-    print('head', '═══ GitQuest Terminal Commands ═══');
+    print('head', '═══ Git Energy Terminal Commands ═══');
     print('out', '');
     print('info', 'SETUP');
     print('out', '  git init                     Initialize a repository');

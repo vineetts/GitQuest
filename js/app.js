@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════
-//  GitQuest — Main Application
+//  Git Energy — Main Application
 // ═══════════════════════════════════════════════
 
 const App = (() => {

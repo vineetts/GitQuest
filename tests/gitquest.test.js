@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-//  GitQuest — Comprehensive Test Suite  v1.0
+//  Git Energy — Comprehensive Test Suite  v1.0
 //  Covers: UI/UX, Navigation, Git content accuracy, Quiz system,
 //          Terminal simulation, Graph visualizer, Personas,
 //          Storyline, Accessibility, Performance, Edge cases
@@ -111,7 +111,7 @@ const GQTest = (() => {
 
     panel.innerHTML = `
       <div style="position:sticky;top:0;background:${headerBg};padding:12px 16px;z-index:2">
-        <div style="font-weight:bold;font-size:14px">GitQuest Test Suite</div>
+        <div style="font-weight:bold;font-size:14px">Git Energy Test Suite</div>
         <div style="margin-top:4px;font-size:12px">
           ✅ ${results.pass} pass &nbsp;
           ❌ ${results.fail} fail &nbsp;
@@ -1543,12 +1543,12 @@ GQTest.describe('Accessibility & Non-functional', () => {
     });
     console.error = origError;
     // Filter out React-like or unrelated errors
-    const relevant = errors.filter(e => e.includes('GitQuest') || e.includes('App.') || e.includes('TypeError'));
+    const relevant = errors.filter(e => e.includes('Git Energy') || e.includes('App.') || e.includes('TypeError'));
     GQTest.eq(relevant.length, 0, 'Console errors on world map load:\n' + relevant.join('\n'));
   });
 
   GQTest.it('Page title is set correctly', () => {
-    GQTest.assert(document.title.includes('GitQuest'), `Page title "${document.title}" doesn't include "GitQuest"`);
+    GQTest.assert(document.title.includes('Git Energy'), `Page title "${document.title}" doesn't include "Git Energy"`);
   });
 
   GQTest.it('All 4 persona paths render world map without crashing', () => {
