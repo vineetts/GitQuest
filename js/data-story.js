@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════
-//  GitQuest — Jungle Storyline  (life-stage aware)
+//  Git Energy — Jungle Storyline  (life-stage aware)
 //
 //  Writing rules for non-tech audience:
 //  1. Story text creates the NEED — the lesson teaches the term.

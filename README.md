@@ -1,17 +1,17 @@
-# ⎇ GitQuest
+# ⎇ Git Energy
 
 > **Learn Git by playing.** An interactive, browser-based game that takes you from zero to Git expert through story-driven lessons, real-world incident scenarios, IDE simulations, hands-on CLI practice, and personalised examples based on your background.
 
-[![Live Demo](https://img.shields.io/badge/▶_Play_Now-GitQuest-3fb950?style=for-the-badge)](https://vineetts.github.io/GitQuest)
+[![Live Demo](https://img.shields.io/badge/▶_Play_Now-Git_Energy-3fb950?style=for-the-badge)](https://vineetts.github.io/GitEnergy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 [![No dependencies](https://img.shields.io/badge/dependencies-zero-orange?style=for-the-badge)]()
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=for-the-badge)](CONTRIBUTING.md)
 
 ---
 
-## What is GitQuest?
+## What is Git Energy?
 
-GitQuest is a **zero-install, browser-only** Git learning game with four structured learning paths. It balances **concepts, real-world scenarios, and hands-on CLI practice** — so learners build the muscle memory and intuition that transfers to any tool or team.
+Git Energy is a **zero-install, browser-only** Git learning game with four structured learning paths. It balances **concepts, real-world scenarios, and hands-on CLI practice** — so learners build the muscle memory and intuition that transfers to any tool or team.
 
 ```
 Open index.html → Tell us about yourself → Pick your path → Start learning
@@ -21,7 +21,7 @@ No Node.js. No npm. No build step. No sign-up. One folder, open in a browser.
 
 ---
 
-## Why GitQuest?
+## Why Git Energy?
 
 - ✅ **Personalised from the start** — examples adapt to your background (school, uni, work, or self-taught) in *every* step type, not just story steps
 - ✅ **Story-driven** — narrative characters guide you through each chapter with typewriter speech bubbles
@@ -125,7 +125,7 @@ No Node.js. No npm. No build step. No sign-up. One folder, open in a browser.
 
 ## Life-Stage Personalisation
 
-When you start GitQuest you choose your background — and the examples adapt **throughout every lesson**, not just story steps:
+When you start Git Energy you choose your background — and the examples adapt **throughout every lesson**, not just story steps:
 
 | Stage | Who it's for | Example scenario |
 |---|---|---|
@@ -145,7 +145,7 @@ You can change your background at any time from the Profile screen.
 
 ## Crisis Scenarios
 
-GitQuest includes **7 real-world incident scenarios** that drop you into a crisis and ask: *what do you do?*
+Git Energy includes **7 real-world incident scenarios** that drop you into a crisis and ask: *what do you do?*
 
 | Lesson | Incident |
 |---|---|
@@ -178,13 +178,13 @@ Each crisis has **3–4 resolution choices**, each with a real-world outcome sto
 
 **Quickest option — just open the live link:**
 
-> 🎮 **[https://vineetts.github.io/GitQuest](https://vineetts.github.io/GitQuest)**
+> 🎮 **[https://vineetts.github.io/GitEnergy](https://vineetts.github.io/GitEnergy)**
 
 Or clone and run locally:
 
 ```bash
-git clone https://github.com/vineetsoppadandi/GitQuest.git
-cd GitQuest
+git clone https://github.com/vineetts/GitEnergy.git
+cd GitEnergy
 # Open index.html in your browser
 open index.html          # macOS
 start index.html         # Windows
@@ -203,7 +203,7 @@ Send them the live link — no setup, no account needed. Each player's progress 
 2. Go to **Settings → Pages**
 3. Under **Build and deployment → Source**, select **GitHub Actions**
 4. Click **Save** — the workflow in `.github/workflows/pages.yml` handles the rest
-5. Your game is live at `https://<your-username>.github.io/GitQuest`
+5. Your game is live at `https://<your-username>.github.io/GitEnergy`
 
 ### Serve locally (optional, for development)
 
@@ -222,7 +222,7 @@ npx serve .
 ## Project Structure
 
 ```
-GitQuest/
+GitEnergy/
 ├── index.html              # App shell — all screens and modals
 ├── css/
 │   └── style.css           # Full design system (dark theme, ~2600 lines)
@@ -393,7 +393,7 @@ window.LIFESTAGE_EXAMPLES.school['beginner_b11_1'] =
 - [ ] **GitLab & Bitbucket** variants of IDE simulations
 - [ ] **GitHub Actions lesson** — CI/CD basics
 
-See [open issues](https://github.com/vineetsoppadandi/GitQuest/issues) to contribute.
+See [open issues](https://github.com/vineetts/GitEnergy/issues) to contribute.
 
 ---
 
@@ -447,7 +447,7 @@ gh pr create   # requires GitHub CLI — cli.github.com
 
 ## Acknowledgements
 
-Built with ❤️ by the GitQuest contributors. Inspired by:
+Built with ❤️ by the Git Energy contributors. Inspired by:
 - [Learn Git Branching](https://learngitbranching.js.org/) — the OG visual Git tool
 - [Oh My Git!](https://ohmygit.org/) — the card-based Git game
 - Every developer who has ever force-pushed to main and learned from it

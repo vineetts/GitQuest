@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════
-//  GitQuest — Lesson Data
+//  Git Energy — Lesson Data
 // ═══════════════════════════════════════════════
 
 const ACHIEVEMENTS = [

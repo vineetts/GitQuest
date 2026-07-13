@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════
-//  GitQuest — Git Graph Visualizer v2 (SVG)
+//  Git Energy — Git Graph Visualizer v2 (SVG)
 // ═══════════════════════════════════════════════
 
 const GitVisualizer = (() => {
