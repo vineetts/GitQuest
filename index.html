@@ -67,6 +67,10 @@
   <!-- ═══════════════ SCREEN: LANDING ═══════════════ -->
   <div id="screen-landing" class="screen active">
 
+    <!-- Depth-reactive "deep" backdrop layer — crossfades in over the
+         surface aurora (#screen-landing::before) as --depth increases. -->
+    <div class="lp-depth-deep" aria-hidden="true"></div>
+
     <!-- ── Nav ── -->
     <header class="lp-nav">
       <div class="lp-nav-inner">
@@ -77,7 +81,6 @@
         <nav class="lp-nav-links">
           <a href="#lp-features">Features</a>
           <a href="#lp-paths">Paths</a>
-          <a href="#lp-how">How it works</a>
           <a class="lp-nav-ghost" onclick="App.showScreen('profile')">Progress</a>
         </nav>
         <button class="btn btn-primary btn-sm lp-nav-cta" onclick="App.showScreen('lifestage')">
@@ -85,6 +88,16 @@
         </button>
       </div>
     </header>
+
+    <!-- ── Depth rail: fixed right-edge waypoint nav, doubles as the descent's
+         progress readout. Desktop only (see responsive rules). ── -->
+    <nav class="lp-depth-rail" aria-label="Page depth">
+      <div class="lp-depth-track" aria-hidden="true"><span class="lp-depth-fill"></span></div>
+      <a href="#lp-top" class="lp-depth-pt is-active" style="--pt-pos:0"><span class="lp-depth-dot"></span><span class="lp-depth-label">Surface</span></a>
+      <a href="#lp-showcase" class="lp-depth-pt" style="--pt-pos:1"><span class="lp-depth-dot"></span><span class="lp-depth-label">The Loop</span></a>
+      <a href="#lp-features" class="lp-depth-pt" style="--pt-pos:2"><span class="lp-depth-dot"></span><span class="lp-depth-label">The Tools</span></a>
+      <a href="#lp-paths" class="lp-depth-pt" style="--pt-pos:3"><span class="lp-depth-dot"></span><span class="lp-depth-label">Your Path</span></a>
+    </nav>
 
     <!-- ── Hero — the whole product, in one viewport ── -->
     <section class="lp-hero" id="lp-top">
@@ -147,6 +160,7 @@
     <section class="lp-showcase" id="lp-showcase" aria-label="Watch a Git repository come to life as you scroll">
       <div class="lp-showcase-stage">
         <div class="lp-sc-glow" aria-hidden="true"></div>
+        <div class="lp-sc-dive-kicker" aria-hidden="true">Dive 01 · The Core Loop</div>
 
         <div class="lp-sc-caps">
           <div class="lp-sc-cap" data-a="0"    data-b="0.24"><span class="lp-sc-kicker">The product, unveiled</span><h2>It starts with a single commit.</h2></div>
@@ -198,17 +212,21 @@
       </div>
     </section>
 
-    <!-- ── Gamification stats ── -->
-    <section class="lp-stats">
-      <div class="lp-stat reveal"><span class="lp-stat-ico">✨</span><b>XP &amp; Levels</b><small>Every task rewards progress — watch yourself level up</small></div>
-      <div class="lp-stat reveal"><span class="lp-stat-ico">🔥</span><b>Streaks</b><small>Daily momentum keeps the habit — and the knowledge — alive</small></div>
-      <div class="lp-stat reveal"><span class="lp-stat-ico">❤️</span><b>Safe to Fail</b><small>Break things freely in a sandbox — nothing real ever breaks</small></div>
-      <div class="lp-stat reveal"><span class="lp-stat-ico">🏆</span><b>19 Achievements</b><small>From First Commit to Bisect Detective — collect them all</small></div>
+    <!-- ── What you earn on the way down (slim, muted band) ── -->
+    <section class="lp-earn">
+      <span class="lp-earn-kicker reveal">What you earn on the way down</span>
+      <div class="lp-earn-row">
+        <div class="lp-earn-item reveal"><span class="lp-earn-ico">✨</span><b>XP &amp; Levels</b><small>Every task rewards progress — watch yourself level up</small></div>
+        <div class="lp-earn-item reveal"><span class="lp-earn-ico">🔥</span><b>Streaks</b><small>Daily momentum keeps the habit — and the knowledge — alive</small></div>
+        <div class="lp-earn-item reveal"><span class="lp-earn-ico">❤️</span><b>Safe to Fail</b><small>Break things freely in a sandbox — nothing real ever breaks</small></div>
+        <div class="lp-earn-item reveal"><span class="lp-earn-ico">🏆</span><b>19 Achievements</b><small>From First Commit to Bisect Detective — collect them all</small></div>
+      </div>
     </section>
 
-    <!-- ── Features (told once) ── -->
+    <!-- ── Dive 02: The Tools (told once) ── -->
     <section class="lp-section" id="lp-features">
       <div class="lp-section-head reveal">
+        <span class="lp-dive-kicker">Dive 02 · The Tools</span>
         <h2>Learn by <span class="accent">doing</span>, not watching</h2>
         <p>No passive videos. You type real commands, resolve real conflicts, and survive real incidents.</p>
       </div>
@@ -279,9 +297,11 @@
       </div>
     </section>
 
-    <!-- ── Learning paths (told once) ── -->
+    <!-- ── Dive 03: Your Path — learning paths, condensed how-it-works,
+         and the persona strip all live in one layer now. ── -->
     <section class="lp-section lp-section-alt" id="lp-paths">
       <div class="lp-section-head reveal">
+        <span class="lp-dive-kicker">Dive 03 · Your Path</span>
         <h2>Four paths, <span class="accent">zero to lead</span></h2>
         <p>Start wherever you are. Each path builds on the last.</p>
       </div>
@@ -311,50 +331,21 @@
           <p>Trunk-based dev, GitOps, monorepos, AI agents, MCP and merge queues.</p>
         </div>
       </div>
-    </section>
 
-    <!-- ── How it works ── -->
-    <section class="lp-section" id="lp-how">
-      <div class="lp-section-head reveal">
-        <h2>Start in <span class="accent">30 seconds</span></h2>
-        <p>No account. No download. Open and play.</p>
-      </div>
-      <div class="lp-steps">
-        <div class="lp-step reveal">
-          <div class="lp-step-num">1</div>
-          <h3>Tell us about you</h3>
-          <p>School, uni, work or self-taught — we tailor every example to your world.</p>
-        </div>
-        <div class="lp-step-arrow">→</div>
-        <div class="lp-step reveal">
-          <div class="lp-step-num">2</div>
-          <h3>Pick your path</h3>
-          <p>Not sure? A 60-second quiz recommends where to start.</p>
-        </div>
-        <div class="lp-step-arrow">→</div>
-        <div class="lp-step reveal">
-          <div class="lp-step-num">3</div>
-          <h3>Learn by doing</h3>
-          <p>Type real commands, earn XP, and build muscle memory that transfers to any team.</p>
+      <p class="lp-flow-strip reveal">Pick your background <span class="lp-flow-arrow">→</span> pick your path <span class="lp-flow-note">(or take the 60-second quiz)</span> <span class="lp-flow-arrow">→</span> play. <strong>No account, no install.</strong></p>
+
+      <div class="lp-persona-block">
+        <span class="lp-persona-kicker reveal">Built for every stage</span>
+        <div class="lp-persona-strip">
+          <div class="lp-persona-chip reveal"><span class="ico">🏫</span><div><b>High School</b><small>Group projects &amp; shared files</small></div></div>
+          <div class="lp-persona-chip reveal"><span class="ico">🎓</span><div><b>University</b><small>Team repos &amp; dissertations</small></div></div>
+          <div class="lp-persona-chip reveal"><span class="ico">💼</span><div><b>Professionals</b><small>Hotfixes, PRs &amp; "don't break main"</small></div></div>
+          <div class="lp-persona-chip reveal"><span class="ico">🌱</span><div><b>Self-Taught</b><small>Personal projects &amp; a permanent undo</small></div></div>
         </div>
       </div>
     </section>
 
-    <!-- ── Who it's for (compact, told once) ── -->
-    <section class="lp-section lp-section-alt">
-      <div class="lp-section-head reveal">
-        <h2>Built for <span class="accent">every</span> stage</h2>
-        <p>The same concepts, told through the lens of your life.</p>
-      </div>
-      <div class="lp-persona-strip">
-        <div class="lp-persona-chip reveal"><span class="ico">🏫</span><div><b>High School</b><small>Group projects &amp; shared files</small></div></div>
-        <div class="lp-persona-chip reveal"><span class="ico">🎓</span><div><b>University</b><small>Team repos &amp; dissertations</small></div></div>
-        <div class="lp-persona-chip reveal"><span class="ico">💼</span><div><b>Professionals</b><small>Hotfixes, PRs &amp; "don't break main"</small></div></div>
-        <div class="lp-persona-chip reveal"><span class="ico">🌱</span><div><b>Self-Taught</b><small>Personal projects &amp; a permanent undo</small></div></div>
-      </div>
-    </section>
-
-    <!-- ── Final CTA ── -->
+    <!-- ── Resurface: the final CTA — the light comes back (see --depth easing in css/js) ── -->
     <section class="lp-cta">
       <div class="lp-cta-glow"></div>
       <h2 class="reveal">Ready to master Git?</h2>
@@ -777,5 +768,6 @@
 <script src="js/reveal.js"></script>
 <script src="js/showcase.js"></script>
 <script src="js/tilt.js"></script>
+<script src="js/depth.js"></script>
 </body>
 </html>
