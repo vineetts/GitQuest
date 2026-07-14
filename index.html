@@ -67,9 +67,18 @@
   <!-- ═══════════════ SCREEN: LANDING ═══════════════ -->
   <div id="screen-landing" class="screen active">
 
-    <!-- Depth-reactive "deep" backdrop layer — crossfades in over the
-         surface aurora (#screen-landing::before) as --depth increases. -->
-    <div class="lp-depth-deep" aria-hidden="true"></div>
+    <!-- Journey-driven backdrop: 5 stacked radial-gradient "scenes" (one
+         per product layer) crossfade based on journey scroll progress,
+         plus a depth vignette. Driven entirely by js/journey.js — a
+         single rAF-throttled scroll listener, not page scroll. -->
+    <div class="jy-backdrop" aria-hidden="true">
+      <div class="jy-bg jy-bg-0"></div>
+      <div class="jy-bg jy-bg-1"></div>
+      <div class="jy-bg jy-bg-2"></div>
+      <div class="jy-bg jy-bg-3"></div>
+      <div class="jy-bg jy-bg-4"></div>
+      <div class="jy-vignette"></div>
+    </div>
 
     <!-- ── Nav ── -->
     <header class="lp-nav">
@@ -79,7 +88,7 @@
           <span class="lp-brand-name">Git <span class="accent">Energy</span></span>
         </a>
         <nav class="lp-nav-links">
-          <a href="#lp-features">Features</a>
+          <a href="#jy-track">The Product</a>
           <a href="#lp-paths">Paths</a>
           <a class="lp-nav-ghost" onclick="App.showScreen('profile')">Progress</a>
         </nav>
@@ -89,220 +98,195 @@
       </div>
     </header>
 
-    <!-- ── Depth rail: fixed right-edge waypoint nav, doubles as the descent's
-         progress readout. Desktop only (see responsive rules). ── -->
-    <nav class="lp-depth-rail" aria-label="Page depth">
-      <div class="lp-depth-track" aria-hidden="true"><span class="lp-depth-fill"></span></div>
-      <a href="#lp-top" class="lp-depth-pt is-active" style="--pt-pos:0"><span class="lp-depth-dot"></span><span class="lp-depth-label">Surface</span></a>
-      <a href="#lp-showcase" class="lp-depth-pt" style="--pt-pos:1"><span class="lp-depth-dot"></span><span class="lp-depth-label">The Loop</span></a>
-      <a href="#lp-features" class="lp-depth-pt" style="--pt-pos:2"><span class="lp-depth-dot"></span><span class="lp-depth-label">The Tools</span></a>
-      <a href="#lp-paths" class="lp-depth-pt" style="--pt-pos:3"><span class="lp-depth-dot"></span><span class="lp-depth-label">Your Path</span></a>
-    </nav>
+    <!-- ═══════════════════════════════════════════════════════════
+         THE JOURNEY — one pinned ~620vh scroll track. The camera
+         pushes through 5 nested layers of the actual product UI:
+         browser → world map → lesson → terminal → commit graph, then
+         retreats back to the browser frame for the finale CTA. All
+         motion (transform/opacity/filter only) is driven by a single
+         scroll listener in js/journey.js — scroll position IS the
+         camera. See css "JOURNEY" block + js/journey.js for the
+         motion map. Fully degrades to a static stacked layout under
+         prefers-reduced-motion (see .jy-track.jy-static below). ═══ -->
+    <section class="jy-track" id="jy-track" aria-label="A tour of Git Energy — from the browser window down into the commit graph">
+      <div class="jy-stage">
 
-    <!-- ── Hero — the whole product, in one viewport ── -->
-    <section class="lp-hero" id="lp-top">
-      <div class="lp-hero-copy">
-        <div class="lp-badge">🎮 100% free · Runs in your browser · No install, no app store</div>
-        <h1 class="lp-hero-title">Master Git by <span class="accent">playing</span>.</h1>
-        <p class="lp-hero-sub">
-          Git Energy is a browser game that takes you from your very first commit to
-          senior-level workflows — a real terminal, live merge-conflict resolvers,
-          production incident scenarios, and the AI-era tooling elite teams actually ship with.
-        </p>
-        <div class="lp-hero-actions">
-          <button class="btn btn-primary btn-lg" onclick="App.showScreen('lifestage')">
-            Start Your Quest <span class="btn-arrow">→</span>
+        <!-- Journey progress indicator: real buttons, desktop only. -->
+        <nav class="jy-indicator" aria-label="Journey progress">
+          <div class="jy-indicator-track" aria-hidden="true"><span class="jy-indicator-fill"></span></div>
+          <button type="button" class="jy-dot is-active" data-target="0" aria-label="Jump to Surface" style="--dp:0">
+            <span class="jy-dot-mark" aria-hidden="true"></span><span class="jy-dot-label">Surface</span>
           </button>
-          <a class="btn btn-secondary btn-lg" href="#lp-features">See what's inside</a>
-        </div>
-        <div class="lp-hero-trust">
-          <span>⚡ 45 lessons across 4 paths</span>
-          <span>🚨 7 real incident scenarios</span>
-          <span>💻 30+ command terminal</span>
-        </div>
-      </div>
+          <button type="button" class="jy-dot" data-target="1" aria-label="Jump to Map" style="--dp:1">
+            <span class="jy-dot-mark" aria-hidden="true"></span><span class="jy-dot-label">Map</span>
+          </button>
+          <button type="button" class="jy-dot" data-target="2" aria-label="Jump to Level" style="--dp:2">
+            <span class="jy-dot-mark" aria-hidden="true"></span><span class="jy-dot-label">Level</span>
+          </button>
+          <button type="button" class="jy-dot" data-target="3" aria-label="Jump to Terminal" style="--dp:3">
+            <span class="jy-dot-mark" aria-hidden="true"></span><span class="jy-dot-label">Terminal</span>
+          </button>
+          <button type="button" class="jy-dot" data-target="4" aria-label="Jump to Core" style="--dp:4">
+            <span class="jy-dot-mark" aria-hidden="true"></span><span class="jy-dot-label">Core</span>
+          </button>
+        </nav>
 
-      <!-- Terminal + graph mock: shows the real product immediately, no scrolling needed -->
-      <div class="lp-hero-visual" aria-hidden="true">
-        <div class="lp-term">
-          <div class="lp-term-bar">
-            <span class="lp-dot lp-dot-r"></span>
-            <span class="lp-dot lp-dot-y"></span>
-            <span class="lp-dot lp-dot-g"></span>
-            <span class="lp-term-title">bash — gitenergy</span>
+        <!-- ── L0 · Surface — the game inside a glass browser frame.
+             This IS the opening viewport; no separate hero section. ── -->
+        <div class="jy-layer jy-l0" id="lp-top" data-layer="0">
+
+          <div class="jy-copy">
+            <h1 class="jy-headline">Learn Git. By <span class="accent">playing</span> it.</h1>
+            <p class="jy-sub">A game that teaches real Git — in a real terminal, in your browser.</p>
+            <div class="jy-actions">
+              <button class="btn btn-primary btn-lg" onclick="App.showScreen('lifestage')">
+                Start Your Quest <span class="btn-arrow">→</span>
+              </button>
+              <button class="btn btn-ghost btn-lg" onclick="App.showScreen('profile')">View Progress</button>
+            </div>
+            <p class="jy-scroll-hint">Scroll to go deeper ↓</p>
           </div>
-          <div class="lp-term-body">
-            <p><span class="lp-tp">$</span> git checkout -b feature/login</p>
-            <p class="lp-tmuted">Switched to a new branch 'feature/login'</p>
-            <p><span class="lp-tp">$</span> git commit -m "add auth"</p>
-            <p class="lp-tgreen">✔ Quest complete &nbsp;<span class="lp-xp">+120 XP</span></p>
-            <p><span class="lp-tp">$</span> <span class="lp-caret">▋</span></p>
-          </div>
-        </div>
-        <div class="lp-graph">
-          <svg viewBox="0 0 220 90" width="100%" height="100%">
-            <line x1="20" y1="60" x2="70" y2="60" class="lp-edge"/>
-            <line x1="70" y1="60" x2="120" y2="60" class="lp-edge"/>
-            <line x1="120" y1="60" x2="170" y2="30" class="lp-edge lp-edge-b"/>
-            <line x1="120" y1="60" x2="170" y2="60" class="lp-edge"/>
-            <circle cx="20"  cy="60" r="8" class="lp-node"/>
-            <circle cx="70"  cy="60" r="8" class="lp-node"/>
-            <circle cx="120" cy="60" r="8" class="lp-node"/>
-            <circle cx="170" cy="30" r="8" class="lp-node lp-node-b"/>
-            <circle cx="170" cy="60" r="8" class="lp-node lp-node-head"/>
-          </svg>
-          <span class="lp-graph-label">main</span>
-        </div>
-      </div>
-    </section>
 
-    <!-- ── Showcase: one cinematic scroll moment, the product's signature beat ── -->
-    <section class="lp-showcase" id="lp-showcase" aria-label="Watch a Git repository come to life as you scroll">
-      <div class="lp-showcase-stage">
-        <div class="lp-sc-glow" aria-hidden="true"></div>
-        <div class="lp-sc-dive-kicker" aria-hidden="true">Dive 01 · The Core Loop</div>
-
-        <div class="lp-sc-caps">
-          <div class="lp-sc-cap" data-a="0"    data-b="0.24"><span class="lp-sc-kicker">The product, unveiled</span><h2>It starts with a single commit.</h2></div>
-          <div class="lp-sc-cap" data-a="0.24" data-b="0.5"><span class="lp-sc-kicker">Branch freely</span><h2>Split off. Build in parallel. Break nothing.</h2></div>
-          <div class="lp-sc-cap" data-a="0.5"  data-b="0.76"><span class="lp-sc-kicker">Bring it home</span><h2>Merge it back — cleanly.</h2></div>
-          <div class="lp-sc-cap" data-a="0.76" data-b="1.01"><span class="lp-sc-kicker">And that's the loop</span><h2>Ship it. Level up.</h2></div>
-        </div>
-
-        <div class="lp-sc-graph-wrap" aria-hidden="true">
-          <svg class="lp-sc-graph" viewBox="0 0 900 320" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path class="lp-sc-edge"        pathLength="1" data-in="0.05" data-dur="0.09" d="M90,210 L250,210"/>
-            <path class="lp-sc-edge lp-b"   pathLength="1" data-in="0.20" data-dur="0.12" d="M250,210 C300,210 300,100 330,100"/>
-            <path class="lp-sc-edge"        pathLength="1" data-in="0.28" data-dur="0.09" d="M250,210 L410,210"/>
-            <path class="lp-sc-edge lp-b"   pathLength="1" data-in="0.48" data-dur="0.09" d="M330,100 L500,100"/>
-            <path class="lp-sc-edge"        pathLength="1" data-in="0.66" data-dur="0.10" d="M410,210 L620,210"/>
-            <path class="lp-sc-edge lp-mrg" pathLength="1" data-in="0.70" data-dur="0.12" d="M500,100 C560,100 560,210 620,210"/>
-            <path class="lp-sc-edge"        pathLength="1" data-in="0.92" data-dur="0.08" d="M620,210 L790,210"/>
-            <text class="lp-sc-glabel lp-sc-line" data-in="0.30" x="500" y="80"  text-anchor="middle">feature</text>
-            <text class="lp-sc-glabel lp-sc-line" data-in="0.94" x="790" y="248" text-anchor="middle">main · HEAD</text>
-            <circle class="lp-sc-node"      data-in="0.06" cx="90"  cy="210" r="13"/>
-            <circle class="lp-sc-node"      data-in="0.18" cx="250" cy="210" r="13"/>
-            <circle class="lp-sc-node lp-b" data-in="0.30" cx="330" cy="100" r="13"/>
-            <circle class="lp-sc-node"      data-in="0.34" cx="410" cy="210" r="13"/>
-            <circle class="lp-sc-node lp-b" data-in="0.52" cx="500" cy="100" r="13"/>
-            <circle class="lp-sc-node lp-mrg" data-in="0.72" cx="620" cy="210" r="14"/>
-            <circle class="lp-sc-node lp-head" data-in="0.94" cx="790" cy="210" r="15"/>
-          </svg>
-          <div class="lp-sc-brand lp-sc-line" data-in="0.97">This is <span class="accent">Git Energy</span>.</div>
-        </div>
-
-        <div class="lp-sc-term" aria-hidden="true">
-          <div class="lp-sc-term-bar"><span class="lp-dot lp-dot-r"></span><span class="lp-dot lp-dot-y"></span><span class="lp-dot lp-dot-g"></span></div>
-          <div class="lp-sc-term-body">
-            <p class="lp-sc-line" data-in="0.04"><span class="lp-tp">$</span> git init</p>
-            <p class="lp-sc-line lp-tmuted" data-in="0.10">Initialized empty Git repository</p>
-            <p class="lp-sc-line" data-in="0.26"><span class="lp-tp">$</span> git checkout -b feature</p>
-            <p class="lp-sc-line" data-in="0.50"><span class="lp-tp">$</span> git commit -m "build the UI"</p>
-            <p class="lp-sc-line" data-in="0.70"><span class="lp-tp">$</span> git merge feature</p>
-            <p class="lp-sc-line lp-tgreen" data-in="0.90">✔ Fast-forwarded. Working tree clean.</p>
+          <div class="jy-frame" aria-hidden="true">
+            <div class="jy-browser-bar">
+              <span class="lp-dot lp-dot-r"></span><span class="lp-dot lp-dot-y"></span><span class="lp-dot lp-dot-g"></span>
+              <span class="jy-browser-url">gitenergy.app</span>
+            </div>
+            <div class="jy-browser-body">
+              <div class="jy-bm-head"></div>
+              <div class="jy-bm-row"></div>
+              <div class="jy-bm-row"></div>
+              <div class="jy-bm-row"></div>
+              <div class="jy-bm-row"></div>
+            </div>
           </div>
         </div>
 
-        <div class="lp-sc-hud">
-          <div class="lp-sc-xp lp-sc-line" data-in="0.90"><span class="lp-sc-xp-num">0</span> XP</div>
-          <div class="lp-sc-ach lp-sc-line" data-in="0.96">🏆 Merge Master unlocked</div>
+        <!-- ── L1 · The Map — inside the app: world-map mockup. ── -->
+        <div class="jy-layer jy-l1" data-layer="1">
+          <h2 class="jy-headline">Four <span class="accent">paths</span>.</h2>
+          <p class="jy-sub">From your first commit to force-with-lease.</p>
+          <div class="jy-map-mock" aria-hidden="true">
+            <div class="jy-map-head">
+              <span>Explorer Path</span>
+              <span class="jy-map-xp">140 / 500 XP</span>
+            </div>
+            <div class="jy-map-bar"><span></span></div>
+            <div class="jy-map-rows">
+              <div class="jy-map-row is-current"><span class="jy-map-ring" aria-hidden="true"></span><span class="jy-map-ico">🌱</span><span class="jy-map-name">First Commit</span><span class="jy-map-state">▶</span></div>
+              <div class="jy-map-row is-done"><span class="jy-map-ico">🔀</span><span class="jy-map-name">Branch &amp; Merge</span><span class="jy-map-state">✓</span></div>
+              <div class="jy-map-row"><span class="jy-map-ico">⚡</span><span class="jy-map-name">Rebase Basics</span><span class="jy-map-state">🔒</span></div>
+              <div class="jy-map-row"><span class="jy-map-ico">🚑</span><span class="jy-map-name">Crisis: Leaked Secret</span><span class="jy-map-state">🔒</span></div>
+              <div class="jy-map-row"><span class="jy-map-ico">🚀</span><span class="jy-map-name">Ship It</span><span class="jy-map-state">🔒</span></div>
+            </div>
+          </div>
         </div>
 
-        <div class="lp-sc-progress" aria-hidden="true"><span></span></div>
-      </div>
-    </section>
-
-    <!-- ── What you earn on the way down (slim, muted band) ── -->
-    <section class="lp-earn">
-      <span class="lp-earn-kicker reveal">What you earn on the way down</span>
-      <div class="lp-earn-row">
-        <div class="lp-earn-item reveal"><span class="lp-earn-ico">✨</span><b>XP &amp; Levels</b><small>Every task rewards progress — watch yourself level up</small></div>
-        <div class="lp-earn-item reveal"><span class="lp-earn-ico">🔥</span><b>Streaks</b><small>Daily momentum keeps the habit — and the knowledge — alive</small></div>
-        <div class="lp-earn-item reveal"><span class="lp-earn-ico">❤️</span><b>Safe to Fail</b><small>Break things freely in a sandbox — nothing real ever breaks</small></div>
-        <div class="lp-earn-item reveal"><span class="lp-earn-ico">🏆</span><b>19 Achievements</b><small>From First Commit to Bisect Detective — collect them all</small></div>
-      </div>
-    </section>
-
-    <!-- ── Dive 02: The Tools (told once) ── -->
-    <section class="lp-section" id="lp-features">
-      <div class="lp-section-head reveal">
-        <span class="lp-dive-kicker">Dive 02 · The Tools</span>
-        <h2>Learn by <span class="accent">doing</span>, not watching</h2>
-        <p>No passive videos. You type real commands, resolve real conflicts, and survive real incidents.</p>
-      </div>
-      <div class="lp-feature-rows">
-
-        <div class="lp-frow lp-frow-beginner">
-          <div class="lp-frow-copy reveal">
-            <span class="lp-frow-kicker">Practice</span>
-            <h3>A real terminal. Not a fake one.</h3>
-            <p>A full git + shell simulator — 30+ commands, command history, tab-complete. Tasks tick off live as you type, so muscle memory actually forms.</p>
-          </div>
-          <div class="lp-frow-visual tilt reveal">
-            <div class="lp-frow-bar"><span class="lp-dot lp-dot-r"></span><span class="lp-dot lp-dot-y"></span><span class="lp-dot lp-dot-g"></span><span class="lp-frow-title">bash — gitenergy</span></div>
-            <div class="lp-frow-body mono">
-              <p><span class="lp-tp">$</span> git rebase -i HEAD~3</p>
-              <p class="lp-tmuted">3 commits queued for interactive rebase</p>
+        <!-- ── L2 · The Lesson — 3-pane mockup: story / graph / terminal.
+             The terminal pane gains a glow as the descent nears — the
+             affordance for where the camera goes next. ── -->
+        <div class="jy-layer jy-l2" data-layer="2">
+          <h2 class="jy-headline">Every level is a <span class="accent">story</span>.</h2>
+          <p class="jy-sub">Learn inside real scenarios, not flashcards.</p>
+          <div class="jy-lesson-mock" aria-hidden="true">
+            <div class="jy-lp jy-lp-story">
+              <span class="jy-lp-label">Scenario</span>
+              <p>"Two of us edited the same file overnight. main won't fast-forward anymore…"</p>
+            </div>
+            <div class="jy-lp jy-lp-graph">
+              <span class="jy-lp-label">Graph</span>
+              <svg viewBox="0 0 140 70" width="100%" height="70">
+                <line x1="14" y1="46" x2="60" y2="46" class="lp-edge"/>
+                <line x1="60" y1="46" x2="100" y2="20" class="lp-edge lp-edge-b"/>
+                <line x1="60" y1="46" x2="100" y2="46" class="lp-edge"/>
+                <circle cx="14" cy="46" r="6" class="lp-node"/>
+                <circle cx="60" cy="46" r="6" class="lp-node"/>
+                <circle cx="100" cy="20" r="6" class="lp-node lp-node-b"/>
+                <circle cx="100" cy="46" r="6" class="lp-node lp-node-head"/>
+              </svg>
+            </div>
+            <div class="jy-lp jy-lp-term">
+              <span class="jy-lp-label">Terminal</span>
+              <p><span class="lp-tp">$</span> git merge origin/main</p>
+              <p class="lp-tmuted">CONFLICT (content): app.js</p>
               <p><span class="lp-tp">$</span> <span class="lp-caret">▋</span></p>
             </div>
           </div>
         </div>
 
-        <div class="lp-frow lp-frow-inter">
-          <div class="lp-frow-copy reveal">
-            <span class="lp-frow-kicker">Ship like a team</span>
-            <h3>IDE panels, PRs, and AI review.</h3>
-            <p>VS Code's Source Control panel, GitHub PR interfaces, AI review panels and agent workflows — the exact tools you'll use on a real team.</p>
-          </div>
-          <div class="lp-frow-visual tilt reveal">
-            <div class="lp-frow-bar"><span class="lp-frow-title">Source Control</span></div>
-            <div class="lp-frow-body">
-              <p><span class="lp-frow-tag m">M</span><span class="lp-frow-file">app.js</span></p>
-              <p><span class="lp-frow-tag a">A</span><span class="lp-frow-file">login.css</span></p>
-              <p><span class="lp-frow-tag u">U</span><span class="lp-frow-file">README.md</span></p>
+        <!-- ── L3 · The Terminal — full-viewport, typing scrubbed by
+             scroll position (pure function of p, no timers). ── -->
+        <div class="jy-layer jy-l3" data-layer="3">
+          <h2 class="jy-headline">A real <span class="accent">terminal</span>.</h2>
+          <p class="jy-sub">30+ commands. Real syntax. Zero install.</p>
+          <div class="jy-term-mock" aria-hidden="true">
+            <div class="jy-browser-bar">
+              <span class="lp-dot lp-dot-r"></span><span class="lp-dot lp-dot-y"></span><span class="lp-dot lp-dot-g"></span>
+              <span class="jy-browser-url mono">bash — gitenergy</span>
+            </div>
+            <div class="jy-term-body mono">
+              <p class="jy-tline"><span class="lp-tp">$</span> <span class="jy-ttext" data-in="0.58" data-dur="0.045">git checkout -b feature/login</span></p>
+              <p class="jy-tline lp-tmuted"><span class="jy-ttext" data-in="0.625" data-dur="0.02">Switched to a new branch 'feature/login'</span></p>
+              <p class="jy-tline"><span class="lp-tp">$</span> <span class="jy-ttext" data-in="0.645" data-dur="0.035">git merge feature/login</span></p>
+              <p class="jy-tline lp-tgreen"><span class="jy-ttext" data-in="0.68" data-dur="0.025">✔ Fast-forwarded. Working tree clean.</span></p>
+              <p class="jy-tline"><span class="lp-tp">$</span> <span class="lp-caret">▋</span></p>
             </div>
           </div>
         </div>
 
-        <div class="lp-frow lp-frow-expert">
-          <div class="lp-frow-copy reveal">
-            <span class="lp-frow-kicker">When it breaks</span>
-            <h3>Live incidents. You decide what happens.</h3>
-            <p>A secret leaks to main. A rebase eats a colleague's commits. Real crisis scenarios with real consequences — you choose, and you live with it.</p>
-          </div>
-          <div class="lp-frow-visual tilt reveal">
-            <div class="lp-frow-bar"><span class="lp-frow-title">🚨 Incident</span></div>
-            <div class="lp-frow-body">
-              <p>Secret key committed to main. Scanner fires in 45s.</p>
-              <div class="lp-frow-choices"><span>git reset --soft</span><span>Rotate the key</span></div>
+        <!-- ── L4 · The Core — dark void, the commit DAG draws itself.
+             Reuses the pathLength=1 + stroke-dashoffset technique that
+             used to live in js/showcase.js. XP ticks up, an achievement
+             chip floats in. The most abstract, most premium beat. ── -->
+        <div class="jy-layer jy-l4" data-layer="4">
+          <h2 class="jy-headline">This is your <span class="accent">energy</span>.</h2>
+          <p class="jy-sub">XP, streaks, achievements — earned by doing real Git.</p>
+          <div class="jy-core-mock" aria-hidden="true">
+            <div class="jy-core-glow"></div>
+            <svg class="jy-core-graph" viewBox="0 0 900 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path class="lp-sc-edge"        pathLength="1" data-in="0.780" data-dur="0.018" d="M90,210 L250,210"/>
+              <path class="lp-sc-edge lp-b"   pathLength="1" data-in="0.800" data-dur="0.022" d="M250,210 C300,210 300,100 330,100"/>
+              <path class="lp-sc-edge"        pathLength="1" data-in="0.808" data-dur="0.018" d="M250,210 L410,210"/>
+              <path class="lp-sc-edge lp-b"   pathLength="1" data-in="0.828" data-dur="0.018" d="M330,100 L500,100"/>
+              <path class="lp-sc-edge"        pathLength="1" data-in="0.848" data-dur="0.020" d="M410,210 L620,210"/>
+              <path class="lp-sc-edge lp-mrg" pathLength="1" data-in="0.856" data-dur="0.024" d="M500,100 C560,100 560,210 620,210"/>
+              <path class="lp-sc-edge"        pathLength="1" data-in="0.888" data-dur="0.016" d="M620,210 L790,210"/>
+              <text class="lp-sc-glabel jy-core-line" data-in="0.812" x="500" y="80"  text-anchor="middle">feature</text>
+              <text class="lp-sc-glabel jy-core-line" data-in="0.900" x="790" y="248" text-anchor="middle">main · HEAD</text>
+              <circle class="lp-sc-node"      data-in="0.782" cx="90"  cy="210" r="13"/>
+              <circle class="lp-sc-node"      data-in="0.796" cx="250" cy="210" r="13"/>
+              <circle class="lp-sc-node lp-b" data-in="0.812" cx="330" cy="100" r="13"/>
+              <circle class="lp-sc-node"      data-in="0.818" cx="410" cy="210" r="13"/>
+              <circle class="lp-sc-node lp-b" data-in="0.838" cx="500" cy="100" r="13"/>
+              <circle class="lp-sc-node lp-mrg" data-in="0.860" cx="620" cy="210" r="14"/>
+              <circle class="lp-sc-node lp-head" data-in="0.892" cx="790" cy="210" r="15"/>
+            </svg>
+            <div class="jy-core-hud">
+              <div class="jy-core-xp jy-core-line" data-in="0.840"><span class="jy-core-xp-num">0</span> XP</div>
+              <div class="jy-core-ach jy-core-line" data-in="0.905">🏆 Merge Master unlocked</div>
             </div>
           </div>
         </div>
 
-        <div class="lp-frow lp-frow-innovator">
-          <div class="lp-frow-copy reveal">
-            <span class="lp-frow-kicker">Stay sharp</span>
-            <h3>Quizzes with real stakes.</h3>
-            <p>Three attempts, progressive hints, and the correct answer revealed with a full explanation after a miss — no gotchas, no passive video required.</p>
-          </div>
-          <div class="lp-frow-visual tilt reveal">
-            <div class="lp-frow-bar"><span class="lp-frow-title">Quiz — attempt 1 of 3</span></div>
-            <div class="lp-frow-body">
-              <p>Which command stages a file?</p>
-              <div class="lp-frow-dots"><span class="on"></span><span></span><span></span></div>
-            </div>
+        <!-- ── Pull-back finale — fast retreat to the browser frame,
+             now overlaid with the final CTA. ── -->
+        <div class="jy-finale">
+          <h2 class="jy-headline">Ready to dive in?</h2>
+          <div class="jy-actions">
+            <button class="btn btn-primary btn-lg" onclick="App.showScreen('lifestage')">
+              Start Your Quest — free <span class="btn-arrow">→</span>
+            </button>
+            <button class="btn btn-ghost btn-lg" onclick="App.showScreen('profile')">View Progress</button>
           </div>
         </div>
 
       </div>
     </section>
 
-    <!-- ── Dive 03: Your Path — learning paths, condensed how-it-works,
-         and the persona strip all live in one layer now. ── -->
+    <!-- ── Choose how deep you go — the four learning paths ── -->
     <section class="lp-section lp-section-alt" id="lp-paths">
       <div class="lp-section-head reveal">
-        <span class="lp-dive-kicker">Dive 03 · Your Path</span>
-        <h2>Four paths, <span class="accent">zero to lead</span></h2>
+        <h2>Choose how deep you go.</h2>
         <p>Start wherever you are. Each path builds on the last.</p>
       </div>
       <div class="lp-path-grid">
@@ -331,31 +315,13 @@
           <p>Trunk-based dev, GitOps, monorepos, AI agents, MCP and merge queues.</p>
         </div>
       </div>
-
-      <p class="lp-flow-strip reveal">Pick your background <span class="lp-flow-arrow">→</span> pick your path <span class="lp-flow-note">(or take the 60-second quiz)</span> <span class="lp-flow-arrow">→</span> play. <strong>No account, no install.</strong></p>
-
-      <div class="lp-persona-block">
-        <span class="lp-persona-kicker reveal">Built for every stage</span>
-        <div class="lp-persona-strip">
-          <div class="lp-persona-chip reveal"><span class="ico">🏫</span><div><b>High School</b><small>Group projects &amp; shared files</small></div></div>
-          <div class="lp-persona-chip reveal"><span class="ico">🎓</span><div><b>University</b><small>Team repos &amp; dissertations</small></div></div>
-          <div class="lp-persona-chip reveal"><span class="ico">💼</span><div><b>Professionals</b><small>Hotfixes, PRs &amp; "don't break main"</small></div></div>
-          <div class="lp-persona-chip reveal"><span class="ico">🌱</span><div><b>Self-Taught</b><small>Personal projects &amp; a permanent undo</small></div></div>
-        </div>
-      </div>
     </section>
 
-    <!-- ── Resurface: the final CTA — the light comes back (see --depth easing in css/js) ── -->
-    <section class="lp-cta">
-      <div class="lp-cta-glow"></div>
-      <h2 class="reveal">Ready to master Git?</h2>
-      <p class="reveal">Join the quest — your first commit is one click away.</p>
-      <div class="lp-hero-actions reveal">
-        <button class="btn btn-primary btn-lg" onclick="App.showScreen('lifestage')">
-          Start Your Quest <span class="btn-arrow">→</span>
-        </button>
-        <button class="btn btn-ghost btn-lg" onclick="App.showScreen('profile')">View Progress</button>
-      </div>
+    <!-- ── Proof strip — one slim glass band merging the old earn-band
+         + personas line into a single line of small type. The finale
+         CTA already lives inside the journey; no second big CTA here. ── -->
+    <section class="lp-proof">
+      <p class="reveal">30+ commands · 20+ levels · 7 crisis scenarios · 100% free · For students, developers, and teams</p>
     </section>
 
     <!-- ── Footer ── -->
@@ -766,8 +732,7 @@
 <script src="js/terminal.js"></script>
 <script src="js/app.js"></script>
 <script src="js/reveal.js"></script>
-<script src="js/showcase.js"></script>
+<script src="js/journey.js"></script>
 <script src="js/tilt.js"></script>
-<script src="js/depth.js"></script>
 </body>
 </html>
