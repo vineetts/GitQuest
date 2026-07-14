@@ -79,11 +79,17 @@
       { enterStart: 0.10, enterEnd: 0.24, holdEnd: 0.34, leaveEnd: 0.46 }, // L1
       { enterStart: 0.34, enterEnd: 0.46, holdEnd: 0.56, leaveEnd: 0.66 }, // L2
       { enterStart: 0.56, enterEnd: 0.66, holdEnd: 0.76, leaveEnd: 0.84 }, // L3
-      { enterStart: 0.76, enterEnd: 0.84, holdEnd: 0.94, leaveEnd: 1.00 }, // L4
+      { enterStart: 0.76, enterEnd: 0.84, holdEnd: 0.94, leaveEnd: 0.975 }, // L4 — mostly finishes leaving before the finale becomes prominent (see FINALE_START)
     ];
-    const RETURN_START = 0.90; // L0 frame's pull-back return window start
+    const RETURN_START = 0.90; // backdrop hue's pull-back-to-green window start
     const COPY_HOLD_END = 0.07, COPY_LEAVE_END = 0.20; // headline departs upward+fades early
-    const FINALE_START = 0.96;
+    // FINALE_START deliberately starts *inside* L4's leave window (0.94 to
+    // 0.975) rather than after it: by the time the finale's own opacity
+    // becomes significant, L4 is already faint/mostly-blurred-away, so
+    // there's a real crossfade instead of either (a) a muddy moment where
+    // both a half-opaque finale and a half-blurred L4 are simultaneously
+    // prominent, or (b) a blank gap where neither is visible yet.
+    const FINALE_START = 0.955;
     const HOLD_CENTERS = [0.05, 0.29, 0.51, 0.71, 0.89]; // indicator dot scroll targets
 
     function pushTransform(p, cfg) {
@@ -134,21 +140,29 @@
         hint.style.opacity = clamp(1 - p / 0.06, 0, 1).toFixed(3);
       }
 
-      // L0 frame: normal push lifecycle, with a pull-back return override.
+      // L0 frame: a single push-through lifecycle — enters, holds, then
+      // leaves for good by p=0.24. It never physically reappears for the
+      // finale (that used to make it independently flex-centered at the
+      // same time as the finale's own headline+CTA group, so the two
+      // fought for the same vertical center and the CTAs overlapped the
+      // frame's top edge). The finale's browser-frame echo is a separate
+      // element laid out in-flow inside .jy-finale itself (see below).
       let frameOpacity = 0;
       if (l0frame) {
-        let t = pushTransform(p, PUSH[0]);
-        if (p >= RETURN_START) {
-          const rt = smooth(RETURN_START, 1.0, p);
-          t = { scale: lerp(2.4, 1, rt), blur: lerp(10, 0, rt), opacity: rt };
-        }
+        const t = pushTransform(p, PUSH[0]);
         applyTransform(l0frame, t);
         frameOpacity = t.opacity;
       }
 
+      // The backdrop's L0/"surface" hue still returns during the pull-back
+      // (a purely visual echo — nothing physically re-enters), independent
+      // of the (now one-way) frame opacity above.
+      const returnT = smooth(RETURN_START, 1.0, p);
+      const bg0Presence = Math.max(frameOpacity, returnT);
+
       // L1 / L2 / L3 / L4: push-through lifecycle.
       const layers = [l1, l2, l3, l4];
-      const presence = [frameOpacity]; // presence[0] tracks the frame/backdrop-0 envelope
+      const presence = [bg0Presence]; // presence[0] tracks the frame/backdrop-0 envelope
       layers.forEach((el, i) => {
         const t = pushTransform(p, PUSH[i + 1]);
         applyTransform(el, t);
@@ -207,7 +221,7 @@
       if (bgLayers.length === 5) {
         presence.forEach((v, i) => { bgLayers[i].style.opacity = v.toFixed(3); });
       }
-      if (vignette) vignette.style.opacity = (0.65 * (1 - frameOpacity)).toFixed(3);
+      if (vignette) vignette.style.opacity = (0.65 * (1 - bg0Presence)).toFixed(3);
 
       // Journey progress indicator.
       if (indicator) {

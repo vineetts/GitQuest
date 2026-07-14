@@ -67,19 +67,6 @@
   <!-- ═══════════════ SCREEN: LANDING ═══════════════ -->
   <div id="screen-landing" class="screen active">
 
-    <!-- Journey-driven backdrop: 5 stacked radial-gradient "scenes" (one
-         per product layer) crossfade based on journey scroll progress,
-         plus a depth vignette. Driven entirely by js/journey.js — a
-         single rAF-throttled scroll listener, not page scroll. -->
-    <div class="jy-backdrop" aria-hidden="true">
-      <div class="jy-bg jy-bg-0"></div>
-      <div class="jy-bg jy-bg-1"></div>
-      <div class="jy-bg jy-bg-2"></div>
-      <div class="jy-bg jy-bg-3"></div>
-      <div class="jy-bg jy-bg-4"></div>
-      <div class="jy-vignette"></div>
-    </div>
-
     <!-- ── Nav ── -->
     <header class="lp-nav">
       <div class="lp-nav-inner">
@@ -111,6 +98,23 @@
     <section class="jy-track" id="jy-track" aria-label="A tour of Git Energy — from the browser window down into the commit graph">
       <div class="jy-stage">
 
+        <!-- Journey-driven backdrop: 5 stacked radial-gradient "scenes" (one
+             per product layer) crossfade based on journey scroll progress,
+             plus a depth vignette. Lives INSIDE .jy-stage as an absolute
+             inset:0 child so it is geometrically part of the pinned stage's
+             own box — it can never detach from the viewport, even for a
+             single frame, regardless of scroll speed or JS timing. Driven
+             entirely by js/journey.js — a single rAF-throttled scroll
+             listener, not page scroll. -->
+        <div class="jy-backdrop" aria-hidden="true">
+          <div class="jy-bg jy-bg-0"></div>
+          <div class="jy-bg jy-bg-1"></div>
+          <div class="jy-bg jy-bg-2"></div>
+          <div class="jy-bg jy-bg-3"></div>
+          <div class="jy-bg jy-bg-4"></div>
+          <div class="jy-vignette"></div>
+        </div>
+
         <!-- Journey progress indicator: real buttons, desktop only. -->
         <nav class="jy-indicator" aria-label="Journey progress">
           <div class="jy-indicator-track" aria-hidden="true"><span class="jy-indicator-fill"></span></div>
@@ -136,7 +140,7 @@
         <div class="jy-layer jy-l0" id="lp-top" data-layer="0">
 
           <div class="jy-copy">
-            <h1 class="jy-headline">Learn Git. By <span class="accent">playing</span> it.</h1>
+            <h1 class="jy-headline">Learn Git.<br>By <span class="accent">playing</span> it.</h1>
             <p class="jy-sub">A game that teaches real Git — in a real terminal, in your browser.</p>
             <div class="jy-actions">
               <button class="btn btn-primary btn-lg" onclick="App.showScreen('lifestage')">
@@ -152,12 +156,17 @@
               <span class="lp-dot lp-dot-r"></span><span class="lp-dot lp-dot-y"></span><span class="lp-dot lp-dot-g"></span>
               <span class="jy-browser-url">gitenergy.app</span>
             </div>
+            <!-- Miniature echo of the L1 world-map — a real, colored,
+                 glassy product composition, not a skeleton wireframe. -->
             <div class="jy-browser-body">
-              <div class="jy-bm-head"></div>
-              <div class="jy-bm-row"></div>
-              <div class="jy-bm-row"></div>
-              <div class="jy-bm-row"></div>
-              <div class="jy-bm-row"></div>
+              <div class="jy-fm-head"><span>Explorer Path</span><span class="jy-fm-xp">140 / 500 XP</span></div>
+              <div class="jy-fm-bar"><span style="width:28%"></span></div>
+              <div class="jy-fm-rows">
+                <div class="jy-fm-row is-current"><span class="jy-fm-ring" aria-hidden="true"></span><span class="jy-fm-ico">🌱</span><span class="jy-fm-name">First Commit</span><span class="jy-fm-state">▶</span></div>
+                <div class="jy-fm-row is-done"><span class="jy-fm-ico">🔀</span><span class="jy-fm-name">Branch &amp; Merge</span><span class="jy-fm-state">✓</span></div>
+                <div class="jy-fm-row"><span class="jy-fm-ico">⚡</span><span class="jy-fm-name">Rebase Basics</span><span class="jy-fm-state">🔒</span></div>
+                <div class="jy-fm-row"><span class="jy-fm-ico">🚀</span><span class="jy-fm-name">Ship It</span><span class="jy-fm-state">🔒</span></div>
+              </div>
             </div>
           </div>
         </div>
@@ -243,28 +252,32 @@
           <p class="jy-sub">XP, streaks, achievements — earned by doing real Git.</p>
           <div class="jy-core-mock" aria-hidden="true">
             <div class="jy-core-glow"></div>
-            <svg class="jy-core-graph" viewBox="0 0 900 320" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path class="lp-sc-edge"        pathLength="1" data-in="0.780" data-dur="0.018" d="M90,210 L250,210"/>
-              <path class="lp-sc-edge lp-b"   pathLength="1" data-in="0.800" data-dur="0.022" d="M250,210 C300,210 300,100 330,100"/>
-              <path class="lp-sc-edge"        pathLength="1" data-in="0.808" data-dur="0.018" d="M250,210 L410,210"/>
-              <path class="lp-sc-edge lp-b"   pathLength="1" data-in="0.828" data-dur="0.018" d="M330,100 L500,100"/>
-              <path class="lp-sc-edge"        pathLength="1" data-in="0.848" data-dur="0.020" d="M410,210 L620,210"/>
-              <path class="lp-sc-edge lp-mrg" pathLength="1" data-in="0.856" data-dur="0.024" d="M500,100 C560,100 560,210 620,210"/>
-              <path class="lp-sc-edge"        pathLength="1" data-in="0.888" data-dur="0.016" d="M620,210 L790,210"/>
-              <text class="lp-sc-glabel jy-core-line" data-in="0.812" x="500" y="80"  text-anchor="middle">feature</text>
-              <text class="lp-sc-glabel jy-core-line" data-in="0.900" x="790" y="248" text-anchor="middle">main · HEAD</text>
-              <circle class="lp-sc-node"      data-in="0.782" cx="90"  cy="210" r="13"/>
-              <circle class="lp-sc-node"      data-in="0.796" cx="250" cy="210" r="13"/>
-              <circle class="lp-sc-node lp-b" data-in="0.812" cx="330" cy="100" r="13"/>
-              <circle class="lp-sc-node"      data-in="0.818" cx="410" cy="210" r="13"/>
-              <circle class="lp-sc-node lp-b" data-in="0.838" cx="500" cy="100" r="13"/>
-              <circle class="lp-sc-node lp-mrg" data-in="0.860" cx="620" cy="210" r="14"/>
-              <circle class="lp-sc-node lp-head" data-in="0.892" cx="790" cy="210" r="15"/>
-            </svg>
+            <!-- HUD docked directly above the graph (in normal flow, not
+                 corner-anchored) so it stays visually attached to the
+                 graph and can never overhang the viewport edge as the
+                 layer scales during its leave transform. -->
             <div class="jy-core-hud">
               <div class="jy-core-xp jy-core-line" data-in="0.840"><span class="jy-core-xp-num">0</span> XP</div>
               <div class="jy-core-ach jy-core-line" data-in="0.905">🏆 Merge Master unlocked</div>
             </div>
+            <svg class="jy-core-graph" viewBox="0 0 900 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path class="lp-sc-edge"        pathLength="1" data-in="0.780" data-dur="0.018" d="M100,170 L260,170"/>
+              <path class="lp-sc-edge lp-b"   pathLength="1" data-in="0.800" data-dur="0.022" d="M260,170 C310,170 310,60 340,60"/>
+              <path class="lp-sc-edge"        pathLength="1" data-in="0.808" data-dur="0.018" d="M260,170 L420,170"/>
+              <path class="lp-sc-edge lp-b"   pathLength="1" data-in="0.828" data-dur="0.018" d="M340,60 L510,60"/>
+              <path class="lp-sc-edge"        pathLength="1" data-in="0.848" data-dur="0.020" d="M420,170 L630,170"/>
+              <path class="lp-sc-edge lp-mrg" pathLength="1" data-in="0.856" data-dur="0.024" d="M510,60 C570,60 570,170 630,170"/>
+              <path class="lp-sc-edge"        pathLength="1" data-in="0.888" data-dur="0.016" d="M630,170 L800,170"/>
+              <text class="lp-sc-glabel jy-core-line" data-in="0.812" x="510" y="40"  text-anchor="middle">feature</text>
+              <text class="lp-sc-glabel jy-core-line" data-in="0.900" x="800" y="208" text-anchor="middle">main · HEAD</text>
+              <circle class="lp-sc-node"      data-in="0.782" cx="100" cy="170" r="13"/>
+              <circle class="lp-sc-node"      data-in="0.796" cx="260" cy="170" r="13"/>
+              <circle class="lp-sc-node lp-b" data-in="0.812" cx="340" cy="60"  r="13"/>
+              <circle class="lp-sc-node"      data-in="0.818" cx="420" cy="170" r="13"/>
+              <circle class="lp-sc-node lp-b" data-in="0.838" cx="510" cy="60"  r="13"/>
+              <circle class="lp-sc-node lp-mrg" data-in="0.860" cx="630" cy="170" r="14"/>
+              <circle class="lp-sc-node lp-head" data-in="0.892" cx="800" cy="170" r="15"/>
+            </svg>
           </div>
         </div>
 
@@ -277,6 +290,27 @@
               Start Your Quest — free <span class="btn-arrow">→</span>
             </button>
             <button class="btn btn-ghost btn-lg" onclick="App.showScreen('profile')">View Progress</button>
+          </div>
+          <!-- Closing echo of the L0 browser frame, laid out in normal
+               flow BELOW the CTA row (headline → gap → CTA → gap →
+               frame) so it can never overlap the buttons. It may crop
+               off the viewport bottom on short viewports — that's fine,
+               it's already fully readable above the fold. -->
+          <div class="jy-frame jy-finale-frame" aria-hidden="true">
+            <div class="jy-browser-bar">
+              <span class="lp-dot lp-dot-r"></span><span class="lp-dot lp-dot-y"></span><span class="lp-dot lp-dot-g"></span>
+              <span class="jy-browser-url">gitenergy.app</span>
+            </div>
+            <div class="jy-browser-body">
+              <div class="jy-fm-head"><span>Explorer Path</span><span class="jy-fm-xp">460 / 500 XP</span></div>
+              <div class="jy-fm-bar"><span style="width:90%"></span></div>
+              <div class="jy-fm-rows">
+                <div class="jy-fm-row is-done"><span class="jy-fm-ico">🔀</span><span class="jy-fm-name">Branch &amp; Merge</span><span class="jy-fm-state">✓</span></div>
+                <div class="jy-fm-row is-done"><span class="jy-fm-ico">⚡</span><span class="jy-fm-name">Rebase Basics</span><span class="jy-fm-state">✓</span></div>
+                <div class="jy-fm-row is-current"><span class="jy-fm-ring" aria-hidden="true"></span><span class="jy-fm-ico">🚑</span><span class="jy-fm-name">Crisis: Leaked Secret</span><span class="jy-fm-state">▶</span></div>
+                <div class="jy-fm-row"><span class="jy-fm-ico">🚀</span><span class="jy-fm-name">Ship It</span><span class="jy-fm-state">🔒</span></div>
+              </div>
+            </div>
           </div>
         </div>
 
