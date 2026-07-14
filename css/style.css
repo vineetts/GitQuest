@@ -3139,8 +3139,16 @@ body {
   background: #0a0e14;
   overflow-x: clip;
   isolation: isolate;
+  --depth: 0; /* 0 = surface, 1 = deepest (driven by js/depth.js on scroll) */
 }
 
+/* ── Depth-reactive backdrop ──
+   Two fixed, full-viewport aurora layers crossfade via --depth as you
+   scroll: a green-heavy "surface" layer (::before, unchanged from the
+   original hero treatment) and a darker, blue/purple "deep" layer
+   (.lp-depth-deep) that fades in through the dives and fades back out
+   as the page resurfaces at the CTA. Opacity-only, so it's cheap even
+   though it's driven every animation frame. ── */
 #screen-landing::before {
   content: ''; position: fixed; inset: -10%;
   z-index: 0; pointer-events: none;
@@ -3149,6 +3157,20 @@ body {
     radial-gradient(32% 34% at 86% 14%, rgba(34,224,195,.12), transparent 70%),
     radial-gradient(40% 40% at 76% 82%, rgba(88,166,255,.11), transparent 72%);
   filter: blur(30px);
+  opacity: calc(1 - var(--depth) * .55);
+  transition: opacity .2s linear;
+}
+
+.lp-depth-deep {
+  position: fixed; inset: -10%; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(40% 42% at 22% 86%, rgba(188,140,255,.20), transparent 70%),
+    radial-gradient(36% 38% at 84% 76%, rgba(88,166,255,.20),  transparent 70%),
+    radial-gradient(50% 46% at 50% 8%,  rgba(34,224,195,.10),  transparent 72%),
+    #06090f;
+  filter: blur(30px);
+  opacity: calc(var(--depth) * .9);
+  transition: opacity .2s linear;
 }
 
 #screen-landing::after {
@@ -3163,8 +3185,11 @@ body {
 }
 
 #screen-landing section, #screen-landing header, #screen-landing footer { position: relative; z-index: 1; }
+@media (prefers-reduced-motion: reduce) {
+  #screen-landing::before, .lp-depth-deep { transition: none; }
+}
 
-#lp-features, #lp-paths, #lp-how { scroll-margin-top: 76px; }
+#lp-top, #lp-showcase, #lp-features, #lp-paths { scroll-margin-top: 76px; }
 
 /* ── Reveal-on-scroll (lightweight, no scroll-jacking) ──
    A cinematic "focus pull": elements rise, settle from a
@@ -3205,6 +3230,48 @@ body {
 .lp-nav-links { display: flex; align-items: center; gap: 28px; margin-left: auto; margin-right: 28px; }
 .lp-nav-links a { color: var(--text-muted); text-decoration: none; font-size: .92rem; font-weight: 500; transition: color var(--transition); cursor: pointer; }
 .lp-nav-links a:hover { color: var(--text); }
+
+/* ── Depth rail — fixed right-edge waypoint nav + progress readout.
+   Real navigation (anchor links to each dive), so it stays fully
+   functional under prefers-reduced-motion; only its highlight glow
+   is a decoration. Desktop only — see responsive rules below. ── */
+.lp-depth-rail {
+  position: fixed; top: 50%; right: 28px; transform: translateY(-50%);
+  z-index: 45; width: 130px; height: 190px; pointer-events: none;
+}
+.lp-depth-track {
+  position: absolute; top: 0; right: 3px; width: 2px; height: 100%;
+  background: rgba(255,255,255,.14); border-radius: 2px; overflow: hidden;
+}
+.lp-depth-fill {
+  display: block; width: 100%; height: 100%;
+  transform-origin: top; transform: scaleY(var(--rail-progress, 0));
+  background: linear-gradient(180deg, var(--green), #22e0c3 40%, var(--blue) 72%, var(--purple));
+  transition: transform .15s linear;
+}
+.lp-depth-pt {
+  position: absolute; right: 0; top: calc(var(--pt-pos) / 3 * 100%); transform: translateY(-50%);
+  display: flex; flex-direction: row-reverse; align-items: center; gap: 8px;
+  text-decoration: none; pointer-events: auto; padding: 6px 0;
+}
+.lp-depth-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  background: var(--bg3); border: 1px solid var(--glass-brd-hi);
+  transition: background .25s ease, box-shadow .25s ease, transform .25s ease;
+}
+.lp-depth-label {
+  font-family: var(--font-mono); font-size: .68rem; letter-spacing: .3px;
+  color: var(--text-dim); white-space: nowrap;
+  opacity: 0; transform: translateX(4px);
+  transition: opacity .2s ease, transform .2s ease;
+}
+.lp-depth-pt:hover .lp-depth-label,
+.lp-depth-pt:focus-visible .lp-depth-label,
+.lp-depth-pt.is-active .lp-depth-label { opacity: 1; transform: none; color: var(--text-muted); }
+.lp-depth-pt.is-active .lp-depth-dot { background: #22e0c3; border-color: #22e0c3; box-shadow: 0 0 10px rgba(34,224,195,.85); transform: scale(1.35); }
+@media (max-width: 860px) {
+  .lp-depth-rail { display: none; }
+}
 
 /* ── Buttons (landing-scoped premium treatment) ── */
 #screen-landing .btn-secondary {
@@ -3281,21 +3348,25 @@ body {
   background: rgba(255,255,255,.04); border: 1px solid var(--glass-brd); border-radius: 100px; padding: 2px 10px;
 }
 
-/* ── Stats strip ── */
-.lp-stats {
-  max-width: 1160px; margin: 0 auto; width: 100%; padding: 0 24px 60px;
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
-}
-.lp-stat {
+/* ── Earn band — what you pick up on the way down. Slimmed from a
+   4-card grid to one muted, low-profile row: same content, far less
+   visual weight, so it reads as a beat between dives rather than a
+   destination of its own. ── */
+.lp-earn { max-width: 1160px; margin: 0 auto; width: 100%; padding: 0 24px 56px; text-align: center; }
+.lp-earn-kicker { display: block; color: var(--text-dim); font-size: .78rem; letter-spacing: .3px; margin-bottom: 16px; }
+.lp-earn-row {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 2px;
   background: var(--glass-bg); border: 1px solid var(--glass-brd); border-radius: var(--radius-xl);
   -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-  padding: 22px 20px; text-align: center;
-  transition: transform .24s ease, border-color .24s ease, box-shadow .24s ease;
+  padding: 14px 10px;
 }
-.lp-stat:hover { transform: translateY(-4px); border-color: var(--glass-brd-hi); box-shadow: 0 16px 34px -16px rgba(0,0,0,.6), 0 0 0 1px var(--ring); }
-.lp-stat-ico { display: block; font-size: 1.7rem; margin-bottom: 10px; }
-.lp-stat b { display: block; font-size: 1rem; margin-bottom: 6px; }
-.lp-stat small { display: block; color: var(--text-muted); font-size: .8rem; line-height: 1.5; }
+.lp-earn-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 18px; text-align: left; flex: 1 1 220px; max-width: 280px;
+}
+.lp-earn-ico { font-size: 1.2rem; flex-shrink: 0; }
+.lp-earn-item b { display: block; font-size: .82rem; font-weight: 700; }
+.lp-earn-item small { display: block; color: var(--text-dim); font-size: .72rem; line-height: 1.4; }
 
 /* ── Sections ── */
 .lp-section { padding: 64px 24px; }
@@ -3304,6 +3375,14 @@ body {
 .lp-section-head { text-align: center; margin-bottom: 40px; }
 .lp-section-head h2 { font-size: clamp(1.9rem, 3.8vw, 2.9rem); font-weight: 800; letter-spacing: -1.4px; margin-bottom: 14px; }
 .lp-section-head p { color: var(--text-muted); font-size: 1rem; max-width: 520px; margin: 0 auto; }
+
+/* ── Dive kicker — the depth marker atop each dive's section head:
+   "DIVE 0N · NAME", mono/uppercase/teal, quiet but legible. ── */
+.lp-dive-kicker {
+  display: block; font-family: var(--font-mono); font-weight: 600;
+  font-size: .76rem; letter-spacing: 3px; text-transform: uppercase;
+  color: #22e0c3; margin-bottom: 14px;
+}
 
 /* ── Path grid ── */
 .lp-path-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
@@ -3327,18 +3406,22 @@ body {
 .lp-path-tag { font-style: italic; color: var(--text-dim); font-size: .82rem; margin-bottom: 10px; }
 .lp-path p:last-child { color: var(--text-muted); font-size: .87rem; line-height: 1.55; }
 
-/* ── Steps ── */
-.lp-steps { display: flex; align-items: flex-start; justify-content: center; gap: 24px; }
-.lp-step { flex: 1; max-width: 300px; text-align: center; }
-.lp-step-num {
-  width: 40px; height: 40px; border-radius: 50%; background: var(--grad-btn); color: #03130a; font-weight: 800; font-size: 1.1rem;
-  display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; box-shadow: 0 0 20px rgba(33,211,166,.4);
+/* ── Flow strip — "how it works", condensed to one line under the path
+   grid (was a separate 3-step section; folded into Dive 03 so the
+   descent doesn't add a layer for something this small). ── */
+.lp-flow-strip {
+  text-align: center; color: var(--text-muted); font-size: .92rem; line-height: 1.7;
+  max-width: 720px; margin: 40px auto 0; padding-top: 28px; border-top: 1px solid var(--glass-brd);
 }
-.lp-step h3 { font-size: 1.02rem; font-weight: 700; margin-bottom: 8px; }
-.lp-step p { color: var(--text-muted); font-size: .88rem; line-height: 1.55; }
-.lp-step-arrow { color: var(--text-dim); font-size: 1.4rem; padding-top: 8px; flex-shrink: 0; }
+.lp-flow-arrow { color: #22e0c3; font-weight: 700; margin: 0 8px; }
+.lp-flow-note { color: var(--text-dim); font-style: italic; }
+.lp-flow-strip strong { color: var(--text); }
 
-/* ── Personas (slim strip, told once) ── */
+/* ── Personas (slim strip, told once) — folded into Dive 03, directly
+   under the path grid, with a compact label instead of a full
+   section head. ── */
+.lp-persona-block { margin-top: 40px; text-align: center; }
+.lp-persona-kicker { display: block; color: var(--text-dim); font-size: .82rem; margin-bottom: 16px; }
 .lp-persona-strip { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
 .lp-persona-chip {
   display: flex; align-items: center; gap: 10px;
@@ -3375,12 +3458,11 @@ body {
   .lp-nav-links { display: none; }
   .lp-hero { grid-template-columns: 1fr; padding: 44px 20px 44px; gap: 36px; min-height: auto; }
   .lp-hero-copy { max-width: none; }
-  .lp-stats { grid-template-columns: repeat(2, 1fr); padding: 0 20px 48px; }
+  .lp-earn { padding: 0 20px 48px; }
+  .lp-earn-row { flex-direction: column; align-items: stretch; }
+  .lp-earn-item { max-width: none; }
   .lp-section { padding: 52px 20px; }
   .lp-path-grid { grid-template-columns: repeat(2, 1fr); }
-  .lp-steps { flex-direction: column; align-items: center; gap: 30px; }
-  .lp-step { max-width: 380px; }
-  .lp-step-arrow { display: none; }
   .lp-cta { padding: 64px 20px; }
 }
 @media (max-width: 560px) {
@@ -3391,10 +3473,11 @@ body {
   .lp-hero-actions { flex-direction: column; align-items: stretch; }
   .lp-hero-actions .btn { justify-content: center; }
   .lp-hero-trust { flex-direction: column; gap: 8px; }
-  .lp-stats { grid-template-columns: 1fr; padding: 0 16px 40px; }
+  .lp-earn { padding: 0 16px 40px; }
   .lp-section { padding: 44px 16px; }
   .lp-section-head { margin-bottom: 30px; }
   .lp-path-grid { grid-template-columns: 1fr; }
+  .lp-flow-strip { margin-top: 30px; padding-top: 22px; }
   .lp-persona-strip { flex-direction: column; align-items: stretch; }
   .lp-cta { padding: 52px 16px; }
   .lp-cta .lp-hero-actions { flex-direction: column; align-items: stretch; }
@@ -3422,6 +3505,13 @@ body {
     radial-gradient(ellipse 44% 48% at 42% 44%, rgba(33,211,166,.22), transparent 70%),
     radial-gradient(ellipse 46% 46% at 64% 60%, rgba(88,166,255,.14), transparent 72%);
   filter: blur(26px); pointer-events: none; z-index: 0; opacity: .25;
+}
+
+.lp-sc-dive-kicker {
+  position: absolute; top: 4vh; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-mono); font-weight: 600; font-size: .72rem;
+  letter-spacing: 3px; text-transform: uppercase; color: #22e0c3; opacity: .85;
+  z-index: 3; pointer-events: none;
 }
 
 .lp-sc-caps { position: absolute; top: 10vh; left: 50%; transform: translateX(-50%); width: min(820px, 92vw); text-align: center; z-index: 3; pointer-events: none; }
@@ -3467,6 +3557,7 @@ body {
 }
 @media (max-width: 560px) {
   .lp-showcase { height: 210vh; }
+  .lp-sc-dive-kicker { top: 2.5vh; font-size: .64rem; letter-spacing: 2px; }
   .lp-sc-caps { top: 7vh; }
   .lp-sc-cap h2 { font-size: clamp(1.4rem, 6vw, 2rem); }
   .lp-sc-graph-wrap { width: 94vw; }
@@ -3524,10 +3615,13 @@ body {
 .lp-frow-dots span { width: 10px; height: 10px; border-radius: 50%; background: var(--bg3); border: 1px solid var(--border); display: inline-block; }
 .lp-frow-dots span.on { background: var(--green); border-color: var(--green); box-shadow: 0 0 10px rgba(63,185,80,.6); }
 
-.lp-frow-beginner  { --row-color: var(--beginner); }
-.lp-frow-inter     { --row-color: var(--inter); }
-.lp-frow-expert    { --row-color: var(--expert); }
-.lp-frow-innovator { --row-color: var(--innovator); }
+/* Each row's accent now encodes depth (not persona level): row 1 is the
+   shallowest green, row 4 the deepest purple — a quiet echo of the
+   descent inside the section that IS the descent's tools layer. */
+.lp-frow-beginner  { --row-color: var(--green); }
+.lp-frow-inter     { --row-color: #22e0c3; }
+.lp-frow-expert    { --row-color: var(--blue); }
+.lp-frow-innovator { --row-color: var(--purple); }
 
 @media (max-width: 860px) {
   .lp-feature-rows { gap: 64px; }
