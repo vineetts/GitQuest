@@ -82,7 +82,16 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { font-size: 15px; scroll-behavior: smooth; }
+/* No global scroll-behavior: smooth. It used to live here, but browser
+   native smooth-scroll (triggered by any scrollTo/anchor jump while it
+   applies) interpolates scroll position on its own timer, independent
+   of our rAF loop — for the journey's indicator-dot jumps that produced
+   visible artifact frames (D2). The journey now drives its own jumps
+   with a custom rAF animation (js/journey.js) that explicitly requests
+   `behavior: 'instant'` on every scrollTo call, so it is unaffected
+   either way; anchor-link nav (e.g. the header's "The Product" link)
+   simply jumps instantly now instead of animating. */
+html { font-size: 15px; }
 
 body {
   font-family: var(--font-main);
@@ -3294,7 +3303,14 @@ body {
    the journey starts, fades out during the pull-back finale). ── */
 .jy-indicator {
   position: fixed; top: 50%; right: 30px; transform: translateY(-50%);
-  z-index: 45; width: 140px; height: 210px; opacity: 0; pointer-events: none;
+  z-index: 45; width: 140px; height: 210px; opacity: 0;
+  /* D1: stays real-clickable at all times (including p=0, before its
+     fade-in opacity ramp completes) — it's a small fixed-position hit
+     area off to the side that never overlaps other controls, so there
+     is no cost to keeping it interactive slightly before/after its
+     own visibility animation. js/journey.js only ever drives its
+     opacity, never pointer-events. */
+  pointer-events: auto;
 }
 .jy-indicator-track {
   position: absolute; top: 0; right: 3px; width: 2px; height: 100%;
@@ -3337,8 +3353,23 @@ body {
   position: absolute; inset: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 34px; padding: 0 24px; text-align: center;
-  will-change: transform, opacity, filter;
+  will-change: transform;
+  /* D1: every layer — including invisible/inactive ones — is a
+     full-viewport box stacked under the indicator and any active
+     layer's controls. Without this, an opacity:0 layer (e.g. L0 once
+     you've scrolled past it) still intercepts pointer events and
+     blocks clicks meant for whatever's visually on top. Interactive
+     children (CTA buttons) opt back in explicitly, and only while
+     their own layer is the live one — see `.is-live` below. */
+  pointer-events: none;
 }
+/* Mockup vs. copy fade independently (D3): the layer root only ever
+   carries the camera-push SCALE (set directly by js/journey.js); the
+   mockup and the copy (headline/sub) below get their own opacity/blur
+   timelines so text can hard-cut out fast while its mockup lingers,
+   and so the incoming mockup can turn crisp well before its headline
+   fades in. */
+.jy-mock { will-change: opacity, filter; }
 .jy-l1 { z-index: 2; } .jy-l2 { z-index: 3; } .jy-l3 { z-index: 4; } .jy-l4 { z-index: 5; }
 .jy-l0 { z-index: 6; }
 .jy-finale {
@@ -3355,6 +3386,15 @@ body {
   overflow: hidden; will-change: transform, opacity;
 }
 .jy-finale-frame { width: min(600px, 80vw); flex-shrink: 0; }
+
+/* D1: the only real interactive controls in the whole journey are the
+   CTA buttons inside L0 and the finale. Both their hosts default to
+   pointer-events: none (above); this opts the buttons back in, and
+   only while js/journey.js has flagged that host as the "live" one
+   (roughly: its copy/overlay is more than half-visible). Every other
+   layer, and L0/finale while not live, stays fully click-through. */
+.jy-layer.is-live .btn,
+.jy-finale.is-live .btn { pointer-events: auto; }
 
 .jy-headline {
   font-size: clamp(2.6rem, 6.5vw, 5.6rem); font-weight: 700;
@@ -3560,9 +3600,15 @@ body {
   .jy-layer {
     position: static; opacity: 1 !important; transform: none !important; filter: none !important;
     width: 100%; padding: 72px 24px; border-bottom: 1px solid var(--glass-brd);
+    /* D1: layers are static and stacked in normal flow here (nothing
+       overlaps), so there's no click-interception risk — restore
+       normal pointer-events so the L0 CTA buttons stay clickable
+       without needing js/journey.js's is-live class (that script does
+       no scroll-driven work at all in reduced-motion mode). */
+    pointer-events: auto !important;
   }
   .jy-l4 { border-bottom: none; }
-  .jy-copy, .jy-frame { opacity: 1 !important; transform: none !important; filter: none !important; }
+  .jy-copy, .jy-frame, .jy-mock { opacity: 1 !important; transform: none !important; filter: none !important; }
   .jy-scroll-hint, .jy-finale { display: none; }
   .jy-ttext { width: auto !important; }
   .lp-sc-edge, .jy-core-line, .lp-sc-node { opacity: 1 !important; }
