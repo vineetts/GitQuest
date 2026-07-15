@@ -249,10 +249,14 @@
           </div>
         </div>
 
-        <!-- ── L4 · The Core — dark void, the commit DAG draws itself.
+        <!-- ── L4 · The Core — dark void, the player's path-to-mastery
+             progression draws itself: four nodes (Explorer → Adventurer →
+             Master → Innovator, the product's real 4-path system) rising
+             left-to-right, connected by a self-drawing glowing line.
              Reuses the pathLength=1 + stroke-dashoffset technique that
              used to live in js/showcase.js. XP ticks up, an achievement
-             chip floats in. The most abstract, most premium beat. ── -->
+             chip floats in as the final (Innovator) node lands. The most
+             abstract, most premium beat. ── -->
         <div class="jy-layer jy-l4" data-layer="4">
           <div class="jy-copy">
             <h2 class="jy-headline">This is your <span class="accent">energy</span>.</h2>
@@ -269,22 +273,21 @@
               <div class="jy-core-ach jy-core-line" data-in="0.905">🏆 Merge Master unlocked</div>
             </div>
             <svg class="jy-core-graph" viewBox="0 0 900 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path class="lp-sc-edge"        pathLength="1" data-in="0.780" data-dur="0.018" d="M100,170 L260,170"/>
-              <path class="lp-sc-edge lp-b"   pathLength="1" data-in="0.800" data-dur="0.022" d="M260,170 C310,170 310,60 340,60"/>
-              <path class="lp-sc-edge"        pathLength="1" data-in="0.808" data-dur="0.018" d="M260,170 L420,170"/>
-              <path class="lp-sc-edge lp-b"   pathLength="1" data-in="0.828" data-dur="0.018" d="M340,60 L510,60"/>
-              <path class="lp-sc-edge"        pathLength="1" data-in="0.848" data-dur="0.020" d="M420,170 L630,170"/>
-              <path class="lp-sc-edge lp-mrg" pathLength="1" data-in="0.856" data-dur="0.024" d="M510,60 C570,60 570,170 630,170"/>
-              <path class="lp-sc-edge"        pathLength="1" data-in="0.888" data-dur="0.016" d="M630,170 L800,170"/>
-              <text class="lp-sc-glabel jy-core-line" data-in="0.812" x="510" y="40"  text-anchor="middle">feature</text>
-              <text class="lp-sc-glabel jy-core-line" data-in="0.900" x="800" y="208" text-anchor="middle">main · HEAD</text>
-              <circle class="lp-sc-node"      data-in="0.782" cx="100" cy="170" r="13"/>
-              <circle class="lp-sc-node"      data-in="0.796" cx="260" cy="170" r="13"/>
-              <circle class="lp-sc-node lp-b" data-in="0.812" cx="340" cy="60"  r="13"/>
-              <circle class="lp-sc-node"      data-in="0.818" cx="420" cy="170" r="13"/>
-              <circle class="lp-sc-node lp-b" data-in="0.838" cx="510" cy="60"  r="13"/>
-              <circle class="lp-sc-node lp-mrg" data-in="0.860" cx="630" cy="170" r="14"/>
-              <circle class="lp-sc-node lp-head" data-in="0.892" cx="800" cy="170" r="15"/>
+              <path class="lp-sc-edge lp-path-adv" pathLength="1" data-in="0.788" data-dur="0.026" d="M120,190 C230,190 230,146 360,146"/>
+              <path class="lp-sc-edge lp-path-mst" pathLength="1" data-in="0.824" data-dur="0.028" d="M360,146 C470,146 470,98 600,98"/>
+              <path class="lp-sc-edge lp-path-inv" pathLength="1" data-in="0.860" data-dur="0.030" d="M600,98 C710,98 710,50 820,50"/>
+              <text class="lp-sc-glabel jy-core-line" data-in="0.792" x="120" y="226" text-anchor="middle">Explorer</text>
+              <text class="lp-sc-glabel jy-core-line" data-in="0.820" x="360" y="183" text-anchor="middle">Adventurer</text>
+              <text class="lp-sc-glabel jy-core-line" data-in="0.856" x="600" y="136" text-anchor="middle">Master</text>
+              <text class="lp-sc-glabel jy-core-line" data-in="0.892" x="820" y="90"  text-anchor="middle">Innovator</text>
+              <circle class="lp-sc-node lp-node-exp" data-in="0.780" cx="120" cy="190" r="16"/>
+              <circle class="lp-sc-node lp-node-adv" data-in="0.808" cx="360" cy="146" r="17"/>
+              <circle class="lp-sc-node lp-node-mst" data-in="0.846" cx="600" cy="98"  r="18"/>
+              <circle class="lp-sc-node lp-node-inv" data-in="0.882" cx="820" cy="50"  r="20"/>
+              <text class="jy-core-icon jy-core-line" data-in="0.782" x="120" y="190" text-anchor="middle" dominant-baseline="central">🌱</text>
+              <text class="jy-core-icon jy-core-line" data-in="0.810" x="360" y="146" text-anchor="middle" dominant-baseline="central">🔀</text>
+              <text class="jy-core-icon jy-core-line" data-in="0.848" x="600" y="98"  text-anchor="middle" dominant-baseline="central">⚡</text>
+              <text class="jy-core-icon jy-core-line" data-in="0.884" x="820" y="50"  text-anchor="middle" dominant-baseline="central">🚀</text>
             </svg>
           </div>
         </div>

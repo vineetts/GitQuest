@@ -3534,14 +3534,20 @@ body {
 .jy-tline { white-space: nowrap; overflow: hidden; }
 .jy-ttext { display: inline-block; overflow: hidden; white-space: pre; vertical-align: bottom; }
 
-/* ── L4 · The Core — dark void, self-drawing commit DAG. The HUD (XP
-   chip + achievement toast) is docked in normal flow directly above
-   the graph — not corner-anchored — so it always reads as attached to
-   the graph, stays centered with it, and can never overhang the
-   viewport edge as the layer scales up during its leave transform
-   (which is also why it fades out in lockstep with the graph: both
-   live inside .jy-core-mock, under the single opacity/filter the
-   scroll driver applies to the whole .jy-l4 layer). ── */
+/* ── L4 · The Core — dark void, self-drawing path-to-mastery
+   progression: four nodes for the product's real 4-path system
+   (Explorer → Adventurer → Master → Innovator), rising left-to-right
+   and connected by a self-drawing glowing line, each path's own
+   established color (--beginner/--inter/--expert/--innovator — same
+   variables the #lp-paths section uses, so this beat stays visually
+   consistent with the rest of the product). The HUD (XP chip +
+   achievement toast) is docked in normal flow directly above the
+   graph — not corner-anchored — so it always reads as attached to the
+   graph, stays centered with it, and can never overhang the viewport
+   edge as the layer scales up during its leave transform (which is
+   also why it fades out in lockstep with the graph: both live inside
+   .jy-core-mock, under the single opacity/filter the scroll driver
+   applies to the whole .jy-l4 layer). ── */
 .jy-core-mock { position: relative; width: min(980px, 94vw); }
 .jy-core-glow {
   position: absolute; top: 50%; left: 50%; width: 960px; height: 620px;
@@ -3553,14 +3559,22 @@ body {
 }
 .jy-core-hud { position: relative; z-index: 2; display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 18px; }
 .jy-core-graph { position: relative; z-index: 1; width: 100%; height: auto; display: block; overflow: visible; }
-.lp-sc-edge { stroke: var(--green); stroke-width: 3.5; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; filter: drop-shadow(0 0 6px rgba(63,185,80,.5)); }
-.lp-sc-edge.lp-b { stroke: var(--blue); filter: drop-shadow(0 0 6px rgba(88,166,255,.5)); }
-.lp-sc-edge.lp-mrg { stroke: #22e0c3; filter: drop-shadow(0 0 7px rgba(34,224,195,.6)); }
-.lp-sc-node { fill: var(--green); stroke: #0a0e14; stroke-width: 4; opacity: 0; transform: scale(.4); transform-box: fill-box; transform-origin: center; filter: drop-shadow(0 0 8px rgba(63,185,80,.6)); }
-.lp-sc-node.lp-b { fill: var(--blue); filter: drop-shadow(0 0 8px rgba(88,166,255,.6)); }
-.lp-sc-node.lp-mrg { fill: #22e0c3; filter: drop-shadow(0 0 10px rgba(34,224,195,.7)); }
-.lp-sc-node.lp-head { fill: #22e0c3; filter: drop-shadow(0 0 16px rgba(34,224,195,.95)); }
+/* Connecting line: each segment is colored by the path it leads
+   *into*, so the ascending line visibly "levels up" through the same
+   four colors as the node it terminates at. */
+.lp-sc-edge { stroke: var(--beginner); stroke-width: 3.5; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; filter: drop-shadow(0 0 6px rgba(63,185,80,.5)); }
+.lp-sc-edge.lp-path-adv { stroke: var(--inter); filter: drop-shadow(0 0 6px rgba(88,166,255,.5)); }
+.lp-sc-edge.lp-path-mst { stroke: var(--expert); filter: drop-shadow(0 0 6px rgba(240,136,62,.5)); }
+.lp-sc-edge.lp-path-inv { stroke: var(--innovator); filter: drop-shadow(0 0 7px rgba(210,168,255,.55)); }
+.lp-sc-node { fill: var(--beginner); stroke: #0a0e14; stroke-width: 4; opacity: 0; transform: scale(.4); transform-box: fill-box; transform-origin: center; filter: drop-shadow(0 0 8px rgba(63,185,80,.6)); }
+.lp-sc-node.lp-node-adv { fill: var(--inter); filter: drop-shadow(0 0 8px rgba(88,166,255,.6)); }
+.lp-sc-node.lp-node-mst { fill: var(--expert); filter: drop-shadow(0 0 9px rgba(240,136,62,.65)); }
+/* Final node (Innovator) — where the achievement lands — gets the
+   strongest glow of the four, so the achievement chip reads as
+   connected to it rather than a floating, disconnected toast. */
+.lp-sc-node.lp-node-inv { fill: var(--innovator); filter: drop-shadow(0 0 16px rgba(210,168,255,.95)); }
 .lp-sc-glabel { fill: var(--text-dim); font-family: var(--font-mono); font-size: 15px; opacity: 0; }
+.jy-core-icon { fill: #e6edf3; font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; font-size: 19px; opacity: 0; }
 .jy-core-line { opacity: 0; transition: none; }
 .jy-core-xp { font-family: var(--font-mono); font-weight: 800; font-size: 1.3rem; color: #03130a; background: var(--grad-btn); padding: 6px 16px; border-radius: 100px; box-shadow: 0 0 26px rgba(33,211,166,.5), inset 0 1px 0 rgba(255,255,255,.4); }
 .jy-core-ach { font-size: .82rem; font-weight: 600; background: var(--glass-bg); border: 1px solid var(--glass-brd); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); padding: 7px 14px; border-radius: 100px; }
