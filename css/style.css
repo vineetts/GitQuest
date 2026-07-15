@@ -3456,6 +3456,43 @@ body {
   .jy-fm-ring { animation: jy-ring-pulse 2s ease-out infinite; }
 }
 
+/* ── Finale · profile echo — a compact, real echo of #screen-profile's
+   avatar/level + .profile-stats-grid + .achievements-grid, used so the
+   closing frame reads as "here's your profile after playing" instead
+   of a third copy of the L0/L1 lesson-row list. ── */
+.jy-fin-body { gap: 14px; }
+.jy-fin-head { display: flex; align-items: center; gap: 12px; }
+.jy-fin-avatar {
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--green), var(--blue));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; color: #000;
+}
+.jy-fin-id { display: flex; flex-direction: column; gap: 2px; text-align: left; }
+.jy-fin-name { font-size: .88rem; font-weight: 700; }
+.jy-fin-level { font-size: .72rem; color: var(--text-dim); }
+.jy-fin-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.jy-fin-stat {
+  background: rgba(255,255,255,.03); border: 1px solid var(--glass-brd); border-radius: 10px;
+  padding: 10px 6px; text-align: center;
+}
+.jy-fin-stat-val { display: block; font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700; color: var(--blue); }
+.jy-fin-stat-lbl { display: block; font-size: .62rem; color: var(--text-dim); margin-top: 2px; }
+.jy-fin-achs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.jy-fin-ach {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: rgba(255,255,255,.03); border: 1px solid var(--glass-brd); border-radius: 10px;
+  padding: 9px 4px; opacity: .4; filter: grayscale(1);
+}
+.jy-fin-ach.is-unlocked {
+  opacity: 1; filter: none;
+  border-color: rgba(227,179,65,.5); background: rgba(227,179,65,.08);
+  box-shadow: 0 0 16px -6px rgba(227,179,65,.6);
+}
+.jy-fin-ach-ico { font-size: 1.2rem; }
+.jy-fin-ach-name { font-size: .58rem; color: var(--text-dim); text-align: center; line-height: 1.2; }
+.jy-fin-ach.is-unlocked .jy-fin-ach-name { color: var(--text); }
+
 /* ── L1 · The Map ── */
 .jy-map-mock {
   width: min(640px, 88vw);
@@ -3467,7 +3504,7 @@ body {
 .jy-map-head { display: flex; align-items: center; justify-content: space-between; font-weight: 700; margin-bottom: 14px; }
 .jy-map-xp { font-family: var(--font-mono); font-size: .76rem; color: var(--text-dim); font-weight: 500; }
 .jy-map-bar { height: 6px; border-radius: 4px; background: rgba(255,255,255,.08); overflow: hidden; margin-bottom: 18px; }
-.jy-map-bar span { display: block; height: 100%; width: 28%; background: var(--grad-btn); border-radius: 4px; }
+.jy-map-bar span { display: block; height: 100%; width: 2%; background: var(--grad-btn); border-radius: 4px; }
 .jy-map-rows { display: flex; flex-direction: column; gap: 8px; }
 .jy-map-row {
   position: relative; display: flex; align-items: center; gap: 12px;
@@ -3602,6 +3639,7 @@ body {
   .jy-browser-body { padding: 16px 16px 20px; }
   .jy-map-mock { padding: 18px 16px 20px; }
   .jy-finale-frame { width: 92vw; }
+  .jy-fin-achs { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* ── Reduced motion: no pinning. Render L0..L4 as five static,
