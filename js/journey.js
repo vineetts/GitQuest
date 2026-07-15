@@ -67,6 +67,11 @@
     const fill        = indicator ? indicator.querySelector('.jy-indicator-fill') : null;
 
     const ttexts = [...track.querySelectorAll('.jy-ttext')];
+    // L1's four-path overview cards — same generic data-in reveal
+    // technique as coreLines below (snap-in opacity over a short fixed
+    // window), just scoped to L1 and with a small rise for a touch more
+    // presence than a flat fade.
+    const l1Cards = [...track.querySelectorAll('.jy-l1 .jy-map-path')];
     const coreEdges = [...track.querySelectorAll('.jy-l4 .lp-sc-edge')];
     const coreNodes = [...track.querySelectorAll('.jy-l4 .lp-sc-node')];
     const coreLines = [...track.querySelectorAll('.jy-l4 .jy-core-line')];
@@ -271,6 +276,14 @@
         const t = smooth(a, a + dur, p);
         const n = Math.round(t * (+len));
         el.style.width = n + 'ch';
+      }
+
+      // L1 path cards: sequential snap-in reveal, one per data-in.
+      for (const el of l1Cards) {
+        const a = +el.dataset.in;
+        const t = smooth(a, a + 0.03, p);
+        el.style.opacity = t.toFixed(3);
+        el.style.transform = 'translateY(' + ((1 - t) * 10).toFixed(2) + 'px)';
       }
 
       // L4 commit graph: reuses the pathLength=1 + stroke-dashoffset
