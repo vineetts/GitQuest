@@ -2798,12 +2798,42 @@ body {
   backdrop-filter: blur(10px);
   transition: border-color .2s, transform .15s, box-shadow .2s;
   text-align: center;
+  position: relative;
+  overflow: hidden;
 }
+
+/* Glowing top rail — same pattern as .persona-card::after. Life-stage
+   cards have no skill-path color mapping (unlike personas' beginner/
+   inter/expert/innovator), so all four share the single brand accent
+   (--green) rather than inventing a new 4-color meaning. */
+.lifestage-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--green);
+  box-shadow: 0 0 16px var(--green);
+  opacity: .85;
+}
+
+/* Ambient hover glow — same pattern as .persona-card::before. */
+.lifestage-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity .2s;
+  border-radius: var(--radius-xl);
+  pointer-events: none;
+  background: radial-gradient(ellipse 80% 40% at 50% 0%, var(--beginner-bg) 0%, transparent 70%);
+}
+
 .lifestage-card:hover {
-  border-color: var(--glass-brd-hi);
+  border-color: var(--green);
   transform: translateY(-4px);
   box-shadow: 0 16px 34px -16px rgba(0,0,0,.6), 0 0 0 1px var(--ring);
 }
+.lifestage-card:hover::before { opacity: 1; }
 .lifestage-icon {
   font-size: 2.6rem;
   margin-bottom: 10px;
@@ -3505,26 +3535,29 @@ body {
 .jy-map-xp { font-family: var(--font-mono); font-size: .76rem; color: var(--text-dim); font-weight: 500; }
 .jy-map-bar { height: 6px; border-radius: 4px; background: rgba(255,255,255,.08); overflow: hidden; margin-bottom: 18px; }
 .jy-map-bar span { display: block; height: 100%; width: 2%; background: var(--grad-btn); border-radius: 4px; }
-.jy-map-rows { display: flex; flex-direction: column; gap: 8px; }
-.jy-map-row {
-  position: relative; display: flex; align-items: center; gap: 12px;
-  padding: 10px 14px; border-radius: 10px; background: rgba(255,255,255,.03);
-  border: 1px solid var(--glass-brd); font-size: .92rem; color: var(--text-muted);
+
+/* Four-path overview cards — one per path, colored by that path's
+   established color (same --beginner/--inter/--expert/--innovator
+   variables #lp-paths uses below), revealed in sequence via data-in
+   (see js/journey.js l1Cards). Opacity/transform start closed; JS (or
+   the reduced-motion CSS override further down) opens them. */
+.jy-map-paths { display: flex; flex-direction: column; gap: 8px; }
+.jy-map-path {
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 16px; border-radius: 10px; background: rgba(255,255,255,.03);
+  border: 1px solid var(--glass-brd); border-left: 3px solid var(--path-color, var(--green));
+  opacity: 0; transform: translateY(10px);
 }
-.jy-map-row.is-done { color: var(--text-muted); }
-.jy-map-row.is-current { color: var(--text); border-color: var(--glass-brd-hi); background: rgba(63,185,80,.06); }
-.jy-map-ico { font-size: 1.1rem; }
-.jy-map-name { flex: 1; text-align: left; }
-.jy-map-state { font-family: var(--font-mono); font-size: .8rem; color: var(--text-dim); }
-.jy-map-row.is-done .jy-map-state { color: var(--green); }
-.jy-map-ring {
-  position: absolute; left: 8px; top: 50%; width: 30px; height: 30px;
-  transform: translateY(-50%); border-radius: 50%;
-  border: 2px solid rgba(63,185,80,.8); pointer-events: none;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .jy-map-ring { animation: jy-ring-pulse 2s ease-out infinite; }
-}
+.jy-map-path-beginner { --path-color: var(--beginner); }
+.jy-map-path-inter     { --path-color: var(--inter); }
+.jy-map-path-expert    { --path-color: var(--expert); }
+.jy-map-path-innovator { --path-color: var(--innovator); }
+.jy-map-path-ico { font-size: 1.4rem; flex-shrink: 0; }
+.jy-map-path-body { display: flex; flex-direction: column; gap: 2px; text-align: left; min-width: 0; }
+.jy-map-path-name { font-weight: 700; font-size: .92rem; color: var(--text); }
+.jy-map-path-name em { font-style: italic; font-weight: 500; color: var(--text-dim); font-size: .82rem; }
+.jy-map-path-desc { font-size: .78rem; color: var(--text-muted); line-height: 1.4; }
+
 @keyframes jy-ring-pulse {
   0%   { box-shadow: 0 0 0 0 rgba(63,185,80,.55); opacity: 1; }
   70%  { box-shadow: 0 0 0 14px rgba(63,185,80,0); opacity: .4; }
@@ -3594,7 +3627,11 @@ body {
     radial-gradient(ellipse 46% 46% at 64% 60%, rgba(88,166,255,.15), transparent 72%);
   filter: blur(26px); pointer-events: none; z-index: 0;
 }
-.jy-core-hud { position: relative; z-index: 2; display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 18px; }
+.jy-core-hud { position: relative; z-index: 2; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px; margin-bottom: 18px; }
+/* Achievements accumulate one per progression node (see data-in on each
+   below) instead of one flat end-of-beat chip — small pills so the row
+   stays within the HUD's original compact footprint even with 4 of them. */
+.jy-core-achs { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
 .jy-core-graph { position: relative; z-index: 1; width: 100%; height: auto; display: block; overflow: visible; }
 /* Connecting line: each segment is colored by the path it leads
    *into*, so the ascending line visibly "levels up" through the same
@@ -3614,7 +3651,7 @@ body {
 .jy-core-icon { fill: #e6edf3; font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; font-size: 19px; opacity: 0; }
 .jy-core-line { opacity: 0; transition: none; }
 .jy-core-xp { font-family: var(--font-mono); font-weight: 800; font-size: 1.3rem; color: #03130a; background: var(--grad-btn); padding: 6px 16px; border-radius: 100px; box-shadow: 0 0 26px rgba(33,211,166,.5), inset 0 1px 0 rgba(255,255,255,.4); }
-.jy-core-ach { font-size: .82rem; font-weight: 600; background: var(--glass-bg); border: 1px solid var(--glass-brd); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); padding: 7px 14px; border-radius: 100px; }
+.jy-core-ach { font-size: .68rem; font-weight: 600; white-space: nowrap; background: var(--glass-bg); border: 1px solid var(--glass-brd); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); padding: 5px 11px; border-radius: 100px; }
 
 /* ── Responsive: shorten the track, scale mockups, hide the indicator. ── */
 @media (max-width: 859px) {
@@ -3666,8 +3703,9 @@ body {
   .lp-sc-edge, .jy-core-line, .lp-sc-node { opacity: 1 !important; }
   .lp-sc-edge { stroke-dashoffset: 0 !important; }
   .lp-sc-node { transform: scale(1) !important; }
+  .jy-map-path { opacity: 1 !important; transform: none !important; }
   .jy-lp-term::after { opacity: .55 !important; }
-  .jy-map-ring, .jy-fm-ring { animation: none; box-shadow: 0 0 0 6px rgba(63,185,80,.25); }
+  .jy-fm-ring { animation: none; box-shadow: 0 0 0 6px rgba(63,185,80,.25); }
   .jy-bg { transition: none; }
   /* The 62vh pane height (P1-5) exists to fill a *pinned* 100vh stage
      during the scroll-jacked journey — in this static, non-pinned

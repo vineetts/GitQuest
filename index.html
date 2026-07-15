@@ -177,18 +177,47 @@
             <h2 class="jy-headline">Four <span class="accent">paths</span>.</h2>
             <p class="jy-sub">From your first commit to force-with-lease.</p>
           </div>
+          <!-- Overview of all FOUR paths (matches this layer's own "Four
+               paths." headline) — content mirrors #lp-paths below (icon /
+               name / tag / trimmed description per path), just condensed
+               into compact cards. L0's mockup above already showed a
+               single-path lesson list, so this deliberately does NOT
+               repeat that — it's the map, not another lesson list. Cards
+               reveal in sequence via data-in (see js/journey.js l1Cards). -->
           <div class="jy-mock jy-map-mock" aria-hidden="true">
             <div class="jy-map-head">
-              <span>Explorer Path</span>
-              <span class="jy-map-xp">0 / 500 XP</span>
+              <span>Choose your path</span>
+              <span class="jy-map-xp">4 paths</span>
             </div>
-            <div class="jy-map-bar"><span style="width:2%"></span></div>
-            <div class="jy-map-rows">
-              <div class="jy-map-row is-current"><span class="jy-map-ring" aria-hidden="true"></span><span class="jy-map-ico">🌱</span><span class="jy-map-name">First Commit</span><span class="jy-map-state">▶</span></div>
-              <div class="jy-map-row"><span class="jy-map-ico">🔀</span><span class="jy-map-name">Branch &amp; Merge</span><span class="jy-map-state">🔒</span></div>
-              <div class="jy-map-row"><span class="jy-map-ico">⚡</span><span class="jy-map-name">Rebase Basics</span><span class="jy-map-state">🔒</span></div>
-              <div class="jy-map-row"><span class="jy-map-ico">🚑</span><span class="jy-map-name">Crisis: Leaked Secret</span><span class="jy-map-state">🔒</span></div>
-              <div class="jy-map-row"><span class="jy-map-ico">🚀</span><span class="jy-map-name">Ship It</span><span class="jy-map-state">🔒</span></div>
+            <div class="jy-map-paths">
+              <div class="jy-map-path jy-map-path-beginner" data-in="0.100">
+                <span class="jy-map-path-ico">🌱</span>
+                <div class="jy-map-path-body">
+                  <span class="jy-map-path-name">Explorer <em>"never used Git"</em></span>
+                  <span class="jy-map-path-desc">First commits, branches, merging, your first PR.</span>
+                </div>
+              </div>
+              <div class="jy-map-path jy-map-path-inter" data-in="0.125">
+                <span class="jy-map-path-ico">🔀</span>
+                <div class="jy-map-path-body">
+                  <span class="jy-map-path-name">Adventurer <em>"teams confuse me"</em></span>
+                  <span class="jy-map-path-desc">Conflicts, rebase vs merge, stashing, PR reviews.</span>
+                </div>
+              </div>
+              <div class="jy-map-path jy-map-path-expert" data-in="0.150">
+                <span class="jy-map-path-ico">⚡</span>
+                <div class="jy-map-path-body">
+                  <span class="jy-map-path-name">Master <em>"level me up"</em></span>
+                  <span class="jy-map-path-desc">Internals, interactive rebase, bisect, hooks.</span>
+                </div>
+              </div>
+              <div class="jy-map-path jy-map-path-innovator" data-in="0.175">
+                <span class="jy-map-path-ico">🚀</span>
+                <div class="jy-map-path-body">
+                  <span class="jy-map-path-name">Innovator <em>"ship like elite teams"</em></span>
+                  <span class="jy-map-path-desc">Trunk-based dev, GitOps, AI agents, merge queues.</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -270,7 +299,19 @@
                  layer scales during its leave transform. -->
             <div class="jy-core-hud">
               <div class="jy-core-xp jy-core-line" data-in="0.840"><span class="jy-core-xp-num">0</span> XP</div>
-              <div class="jy-core-ach jy-core-line" data-in="0.905">🏆 Merge Master unlocked</div>
+              <!-- One achievement per progression node below, each
+                   revealing a beat after its node lights up (node data-in:
+                   Explorer .780 / Adventurer .808 / Master .846 / Innovator
+                   .882 — see the graph nodes further down). Reuses the
+                   existing generic .jy-core-line data-in reveal loop in
+                   js/journey.js (coreLines) — no JS changes needed, these
+                   just need correct data-in like every other .jy-core-line. -->
+              <div class="jy-core-achs">
+                <div class="jy-core-ach jy-core-line" data-in="0.800">🌱 First Commit unlocked</div>
+                <div class="jy-core-ach jy-core-line" data-in="0.828">🌿 Branch Out unlocked</div>
+                <div class="jy-core-ach jy-core-line" data-in="0.866">⚡ Git Master unlocked</div>
+                <div class="jy-core-ach jy-core-line" data-in="0.902">🔀 Merge Master unlocked</div>
+              </div>
             </div>
             <svg class="jy-core-graph" viewBox="0 0 900 240" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path class="lp-sc-edge lp-path-adv" pathLength="1" data-in="0.788" data-dur="0.026" d="M120,190 C230,190 230,146 360,146"/>
