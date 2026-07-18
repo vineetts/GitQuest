@@ -111,6 +111,20 @@
     const FINALE_START = 0.955;
     const HOLD_CENTERS = [0.05, 0.29, 0.51, 0.71, 0.89]; // indicator dot scroll targets
 
+    // perf: filter: blur() forces the browser to re-rasterize the
+    // blurred region on every change (unlike transform/opacity, which the
+    // compositor can handle on its own thread), and that cost stacks
+    // across up to 5 simultaneously-blurring elements during cross-fades.
+    // The "focus pull" read comes mostly from the scale+opacity curves
+    // below — blur is the accent on top — so both its peak radius and
+    // the portion of the push window that pays for it are cut back here.
+    // Confirmed by profiling (see perf-verify.js): this alone is a small
+    // help; the bigger win is pairing it with the backdrop-filter
+    // simplification on the journey's glass panels below, at which point
+    // this reduced/shortened blur costs almost nothing extra to keep.
+    const ENTER_BLUR_MAX = 3; // was 6
+    const LEAVE_BLUR_MAX = 4; // was 10
+
     function pushTransform(p, cfg) {
       const holdStart = cfg.enterEnd != null ? cfg.enterEnd : 0;
       const enterT = cfg.enterStart != null ? smooth(cfg.enterStart, cfg.enterEnd, p) : 1;
@@ -127,7 +141,7 @@
         // reads sharp through the whole second half of the push.
         const blurEnd = cfg.enterStart + (cfg.enterEnd - cfg.enterStart) * 0.5;
         const blurT = smooth(cfg.enterStart, blurEnd, p);
-        blur = lerp(6, 0, blurT);
+        blur = lerp(ENTER_BLUR_MAX, 0, blurT);
       } else if (p < cfg.holdEnd) {
         const holdT = smooth(holdStart, cfg.holdEnd, p);
         scale = lerp(1, 1.06, holdT);
@@ -136,9 +150,16 @@
         // Leaving: the mockup is allowed to linger, blurring/scaling
         // away over the FULL leave window (unlike its copy — see
         // textOpacityFor below, which hard-cuts much sooner). This is
-        // the "object carries the transition" half of D3(b).
+        // the "object carries the transition" half of D3(b). perf: the
+        // blur itself only ramps in over the LATTER 60% of that leave
+        // window (leaveT 0.4→1) rather than its whole span — scale and
+        // opacity already carry the departure from the start, so the
+        // object reads as shrinking-and-fading-away first and only
+        // picks up the blur accent right before it vanishes, which is
+        // also where the eye is least likely to notice the cost.
         scale = lerp(1.06, 2.4, leaveT);
-        blur = lerp(0, 10, leaveT);
+        const leaveBlurT = smooth(0.4, 1, leaveT);
+        blur = lerp(0, LEAVE_BLUR_MAX, leaveBlurT);
       }
       return { scale, blur, opacity };
     }
