@@ -78,6 +78,17 @@
   --glass-brd-hi: rgba(255, 255, 255, .16);
   --ring:         rgba(63, 185, 80, .28);
   --radius-xl: 20px;
+  /* perf: the journey's 4 large glass panels (.jy-frame/.jy-map-mock/
+     .jy-lp/.jy-term-mock) sit on .jy-layer roots that js/journey.js
+     scales on every scroll frame, which forced backdrop-filter to
+     resample its backdrop every frame too — the single biggest cost in
+     the scroll-jank profile. Those panels drop backdrop-filter and use
+     this denser, near-opaque fill instead, so they still read as solid
+     glass cards over the (smooth, gradient) journey backdrop without
+     paying a per-frame resample. --glass-bg (with backdrop-filter) is
+     kept everywhere else on the site where it isn't animating every
+     frame. */
+  --jy-panel-bg:  rgba(20, 25, 32, .88);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -3444,8 +3455,8 @@ body {
 /* ── L0 · Surface — glass browser frame ── */
 .jy-frame {
   width: min(760px, 88vw);
-  background: var(--glass-bg); border: 1px solid var(--glass-brd); border-radius: var(--radius-xl);
-  -webkit-backdrop-filter: blur(12px) saturate(1.2); backdrop-filter: blur(12px) saturate(1.2);
+  /* perf: no backdrop-filter — see --jy-panel-bg above. */
+  background: var(--jy-panel-bg); border: 1px solid var(--glass-brd); border-radius: var(--radius-xl);
   box-shadow: 0 30px 80px -24px rgba(0,0,0,.8);
   overflow: hidden; will-change: transform, opacity, filter;
 }
@@ -3526,8 +3537,8 @@ body {
 /* ── L1 · The Map ── */
 .jy-map-mock {
   width: min(640px, 88vw);
-  background: var(--glass-bg); border: 1px solid var(--glass-brd); border-radius: var(--radius-xl);
-  -webkit-backdrop-filter: blur(12px) saturate(1.2); backdrop-filter: blur(12px) saturate(1.2);
+  /* perf: no backdrop-filter — see --jy-panel-bg above. */
+  background: var(--jy-panel-bg); border: 1px solid var(--glass-brd); border-radius: var(--radius-xl);
   box-shadow: 0 30px 80px -24px rgba(0,0,0,.8);
   padding: 22px 24px 26px;
 }
@@ -3570,8 +3581,10 @@ body {
 }
 .jy-lp {
   position: relative; text-align: left; min-height: min(62vh, 600px);
-  background: var(--glass-bg); border: 1px solid var(--glass-brd); border-radius: var(--radius-xl);
-  -webkit-backdrop-filter: blur(12px) saturate(1.2); backdrop-filter: blur(12px) saturate(1.2);
+  /* perf: no backdrop-filter — see --jy-panel-bg above (3 of these
+     panes are on screen simultaneously, so this was the single most
+     expensive surface in the journey). */
+  background: var(--jy-panel-bg); border: 1px solid var(--glass-brd); border-radius: var(--radius-xl);
   box-shadow: 0 24px 60px -24px rgba(0,0,0,.75);
   padding: 26px 24px; display: flex; flex-direction: column; justify-content: center; gap: 18px; overflow: hidden;
 }
@@ -3593,8 +3606,8 @@ body {
    scroll-scrubbed typing. ── */
 .jy-term-mock {
   width: min(920px, 94vw);
-  background: var(--glass-bg); border: 1px solid var(--glass-brd); border-radius: var(--radius-xl);
-  -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
+  /* perf: no backdrop-filter — see --jy-panel-bg above. */
+  background: var(--jy-panel-bg); border: 1px solid var(--glass-brd); border-radius: var(--radius-xl);
   box-shadow: 0 40px 90px -26px rgba(0,0,0,.85);
   overflow: hidden;
 }
